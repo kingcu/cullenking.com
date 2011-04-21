@@ -1,0 +1,25 @@
+<!DOCTYPE HTML>
+
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="Cullen King" content="blawg blawg blawg" />
+    <title>Don't change the containing div of a flash movie!</title>
+  </head>
+  <body>
+    <header>
+      <h1><a href="/">Home</a></h1>
+    </header>
+    <section>
+      <div class="content">
+  <div id="post">
+    <h1></h1>
+    <p>I just tracked down a bug that was affecting some versions of Firefox on Windows, which is usually not a combination to worry about or test for!</p>
+<p>To combat weird z-index issues between flash and <span class="caps">HTML</span> under Linux, we have been moving the flash movie off screen and changing some styles, then moving it back when the overlay is closed.  One of the styles being changes was the overflow property of the <span class="caps">DIV</span> containing the flash movie.  This style change was causing the flash movie to be completely reloaded, which broke all ExternalInterface callbacks setup on the flash movie.</p>
+<p>Removing the offending style changes solved the problem.  What a pain to track down!</p>
+  </div>
+</div>
+
+    </section>
+  </body>
+</html>

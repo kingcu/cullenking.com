@@ -1,0 +1,15 @@
+--- 
+layout: post
+title: Welcome!
+disqus_id: /2009/3/8/welcome
+categories: 
+  []
+---
+
+
+After a couple years laughing at the thought of blogging, I finally caved.  I came to the conclusion this might be a worthwhile activity when I finally realized how much information on programming and other tech I receive from blog posts.  With that in mind, I decided I could give back a little bit by posting the solutions I come across and implement in my day to day coding.  So, don't expect to see blog posts on inane topics, since I have a hard time writing inanity.  However, I do a fair amount of work with Ruby, Rails, BackgroundRb, Juggernaut, ActionScript (Flex and Flash), JavaScript and Java (for Android development).  I have two current personal projects going on, an encrypted text messaging application for Android, as well as a recreation route sharing and planning website, http://ridewithgps.com/
+
+And the obligatory personal stuff: I am a huge fan of two wheel recreation (motorcycles and biking), which causes me to spend alot of time on my R6 or my Trek 2100.  I spend at least three nights a week at the climbing gym, trying to get better at going up a fake wall, so that I can go up a real one someday.  I just signed up for a scuba certification class, so am attempting to get myself into swimming shape by hitting the pool five or more days a week.  I figure with all the time I spend in front of the computer, I need to offset it with as much fun physical activity as I can.
+
+So, I hope you enjoy the subsequent posts, and feel free to stay in touch and leave comments!
+

@@ -1,0 +1,15 @@
+--- 
+layout: post
+title: Live scripting on Android
+disqus_id: /2009/6/12/live-scripting-on-android
+categories: 
+  []
+---
+
+
+One thing that android has been missing is support for scripting languages.  As a result, there has been no good way to write code for the device without sitting in front of a development environment and using the Android SDK.  Looks like Damon Kohler decided that sucked (rightfully so!) and has put together the Android Scripting Environment.  It currently supports Python, Lua and BeanShell, with JavaScript and Ruby support coming soon.
+
+"http://code.google.com/p/android-scripting/":http://code.google.com/p/android-scripting/
+
+Being able to write code on the device itself that can access the core Android API is a real potential game changer.  Check out their simple examples for some inspiration.
+

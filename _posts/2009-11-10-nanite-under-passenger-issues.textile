@@ -1,0 +1,25 @@
+--- 
+layout: post
+title: Nanite under Passenger issues
+disqus_id: /2009/11/10/nanite-under-passenger-issues
+categories: 
+  []
+---
+
+
+We had been having some serious issues running Nanite under Phusion Passenger, namely we kept losing jobs, and all subsequent jobs did not make it to any agent.  It turns out this is an issue with the amqp gem!
+
+The problem:  messages saying eventmachine is not initialized:
+
+<filter:code theme="blackboard">
+RuntimeError (eventmachine not initialized:
+evma_send_data_to_connection):
+  eventmachine (0.12.8) lib/em/connection.rb:216:in `send_data'
+  eventmachine (0.12.8) lib/em/connection.rb:216:in `send_data' 
+</filter:code>
+
+
+After some digging around, I found the issue on the nanite github page:  "ezmobius nanite page":http://github.com/ezmobius/nanite/issues#issue/8 The solution is easy, upgrade amqp to 0.6.5 (or greater, 0.6.5 is latest at time of writing).
+
+Voila!  No more lost jobs, things appear to be stable.
+

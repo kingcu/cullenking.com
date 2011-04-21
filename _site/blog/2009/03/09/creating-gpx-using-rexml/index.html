@@ -1,0 +1,120 @@
+<!DOCTYPE HTML>
+
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="Cullen King" content="blawg blawg blawg" />
+    <title>Creating GPX using REXML</title>
+  </head>
+  <body>
+    <header>
+      <h1><a href="/">Home</a></h1>
+    </header>
+    <section>
+      <div class="content">
+  <div id="post">
+    <h1></h1>
+    <p>Today I added the ability to export <span class="caps">GPX</span> files to ridewithgps.com.  I will start with a bit of a pre-amble concerning routes, trips and data interchange formats (<span class="caps">GPX</span>, <span class="caps">JSON</span>) then get down to the details.</p>
+<p>On <span class="caps">RWGPS</span>, routes are a higher level concept than trips.  In simple terms, a route is some favourite ride you repeatedly go on.  Each individual ride on your favourite set of backroads is a trip on that route.  So a route is, conversationally, something you&#8217;d mention to a friend.  &#8220;Hey, want to go hit the Alsea Falls loop today&#8221;?  Later, after completing the ride, you would upload your logfile to <span class="caps">RWGPS</span>, storing the trip under the &#8216;Alsea Falls Loop&#8217; route.  The reason I make this distinction is that a route will never have biometric or time information associated with it; the route is just some path.  However, any trip taken on that route potentially has information such as heartrate, pedal speed (cadence), speed, direction etc.</p>
+<p>All routes/trips are stored as <span class="caps">JSON</span> strings inside the database.  Each <span class="caps">JSON</span> string is an array of objects, which have &#8216;lat&#8217;, &#8216;lng&#8217;, &#8216;ele&#8217;, &#8216;hr&#8217;, &#8216;cad&#8217; and &#8216;time&#8217; values.  This has allowed us to easily store and retrieve these values when needed, since <span class="caps">JSON</span> is an ideal interchange format when working with JavaScript or ActionScript.  <span class="caps">JSON</span> is much lighter than any other interchange format, and is extremely easy to use in most programming languages.  Since the route planner/viewer is written in ActionScript, the passed in <span class="caps">JSON</span> string can be turned into an array of AS objects with a single declaration, &#8216;<span class="caps">JSON</span>.decode(jsonString)&#8217;.</p>
+<p>Since we live in the real world, we have to use established standards.  <span class="caps">GPX</span> is <span class="caps">THE</span> established standard for <span class="caps">GPS</span> information, however being <span class="caps">XML</span> it is a fairly clumsy way to store our <span class="caps">GPS</span> routes.  It doesn&#8217;t support extra information such as heartrate, cadence, speed, heading etc.  This is fine for our routes since they have limited data, but we will be losing information for trips.  However it is a simple format to create, and is extremely widespread in use.  Enough side information, how is it done?</p>
+<p>A <span class="caps">GPX</span> document starts with a <gpx> rootnode, which has several required attributes.  First off, you must declare a version.  For most the time tested standard 1.0 will be adequate.  Additionally, an attribute &#8216;creator&#8217; needs to be declared to describe who authored the document, so any problems can be reported to the author.  Next declare the xml namespace, which is hosted on the topografix domain, along with their <span class="caps">XSI</span>.  After these attributes have been defined, we should see something like:</p>
+<filter:code lang="xml" theme="blackboard">
+<gpx xsi:schemaLocation='http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd' 
+  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' 
+  creator='http://ridewithgps.com/' 
+  version='1.0' 
+  xmlns='http://www.topografix.com/GPX/1/0'>
+</gpx>
+</filter:code>
+<p>The code to do so:</p>
+<filter:code lang="ruby" theme="blackboard">
+xml = <span class="caps">REXML</span>::Document.new
+gpx = xml.add_element &#8216;gpx&#8217;, {&#8217;xmlns:xsi&#8217; =&gt; &#8216;http://www.w3.org/2001/XMLSchema-instance&#8217;,
+&#8216;xmlns&#8217; =&gt; &#8216;http://www.topografix.com/<span class="caps">GPX</span>/1/0&#8217;,
+&#8216;xsi:schemaLocation&#8217; =&gt; &#8216;http://www.topografix.com/<span class="caps">GPX</span>/1/0 http://www.topografix.com/<span class="caps">GPX</span>/1/0/gpx.xsd&#8217;,
+&#8216;version&#8217; =&gt; &#8216;1.0&#8217;, &#8216;creator&#8217; =&gt; &#8216;http://ridewithgps.com/&#8217;}
+</filter:code>
+<p>Now that we have our rootnode defined, we move on to the rest of the document.  From here on out life is pretty easy.  We add an optional <time> node to declare the <span class="caps">GPX</span> file creation time, followed by an opening node, <trk> to declare we are starting a new track.  Inside this new node, we declare a track segment with another node, <trkseg>.</p>
+<filter:code lang="ruby" theme="blackboard">
+gpx.add_element(&#8216;name&#8217;).add <span class="caps">REXML</span>::Text.new(asset.name)
+gpx.add_element(&#8216;author&#8217;).add <span class="caps">REXML</span>::Text.new(&#8216;RideWithGPS <span class="caps">LLC</span>&#8217;)
+gpx.add_element(&#8216;url&#8217;).add <span class="caps">REXML</span>::Text.new(url)
+gpx.add_element(&#8216;time&#8217;).add <span class="caps">REXML</span>::Text.new(time)
+trk = gpx.add_element &#8216;trk&#8217;
+trkseg = trk.add_element &#8216;trkseg&#8217;
+</filter:code>
+<p>This gives us some <span class="caps">XML</span> that looks like:</p>
+<filter:code lang="xml" theme="blackboard">
+<name>
+03/10/09
+</name>
+<author>
+RideWithGPS <span class="caps">LLC</span>
+</author>
+<url>
+http://ridewithgps.com/routes/157
+</url>
+<time>
+2009-03-10T13:54:46Z
+</time>
+<trk>
+<trkseg>
+</trkseg>
+<trk>
+</filter:code>
+<p>Now we have our document mostly constructed, we just have to fill the track segment with individual track points.  These track points have two attributes, &#8216;lat&#8217; and &#8216;lon&#8217;.  Elevation and point capture time are stored as children nodes, <ele> and <time>.  We are storing time as the pretty universal unix timestamp, which will need to be converted to <span class="caps">UTC</span> / ISO8601 using strftime.</p>
+<filter:code lang="ruby" theme="blackboard">
+json.each do |pt|
+elem = trkseg.add(<span class="caps">REXML</span>::Element.new(&#8216;trkpt&#8217;))
+elem.add_attributes({&#8217;lat&#8217; =&gt; pt[&#8216;lat&#8217;], &#8216;lon&#8217; =&gt; pt[&#8216;lng&#8217;]})
+elem.add_element(&#8216;ele&#8217;).add(<span class="caps">REXML</span>::Text.new(pt[&#8216;ele&#8217;].to_s))
+if pt[&#8216;time&#8217;]
+time = Time.at(pt[&#8216;time&#8217;]).strftime(&#8220;%Y-%m-%dT%H:%M:%SZ&#8221;)
+elem.add_element(&#8216;time&#8217;).add(<span class="caps">REXML</span>::Text.new(time))
+end
+end
+</filter:code>
+<p>The code is simple enough: we add our track point to the segment, and add a time timestamp if we have one, formatted in <span class="caps">UTC</span>, ISO8601 <a href="http://en.wikipedia.org/wiki/ISO_8601">(wikipedia)</a></p>
+<p>That&#8217;s it!  We get a pretty file output with <span class="caps">REXML</span> if we use their pretty formatted (yes, it&#8217;s actually called the pretty formatter).  Using this formatter, we can declare how many spaces to use for indention and a few other options.  Lookup the <span class="caps">API</span> for specifics.</p>
+<filter:code lang="ruby" theme="blackboard">
+output = String.new
+formatter = <span class="caps">REXML</span>::Formatters::Pretty.new
+formatter.write(gpx, output)
+return output
+</filter:code>
+<p>Now, there are several other things we could include with this <span class="caps">GPX</span> file if we wanted.  <span class="caps">GPX</span> allows for vendor extensions and the like, however, we are interested in a widely compatible output, so keep it simple.  Read the <a href="http://www.topografix.com/GPX/1/1/gpx.xsd"><span class="caps">GPX</span> schema</a> for more information:</p>
+<p>Now, on to the final bit.  We want to keep our controls simple, and our routes predictable.  Since we are using Rails, leveraging Rails services is a cake.  Our current <span class="caps">URL</span> for accessing routes or trips are:</p>
+http://ridewithgps.com/[route/trip]/[id]
+<p>We want to be able to do something as simple as append a .gpx to the end of a path to get the outputted <span class="caps">XML</span> file.  Rails and respond_to make this super simple.  We just add &#8216;gpx&#8217; to our respond_to call and the block associated with it will be executed.</p>
+<filter:code lang="ruby_on_rails" theme="blackboard">
+def show
+@asset = Route.find(params[:id])
+
+respond_to do |wants|
+wants.html do
+@user = @asset.user if @asset.group_membership
+@trips = @asset.trips
+end
+wants.json { render :text =&gt; @asset.data_full }
+wants.gpx do
+worker = MiddleMan.new_worker(:worker =&gt; :xml_processor_worker)
+xml = MiddleMan.worker(:xml_processor_worker).generate(:arg =&gt; {:type =&gt; :route, :id =&gt; params[:id]})
+response.headers[&#8216;Content-Disposition&#8217;] = &#8216;attachment; filename=&#8217; + @asset.name.gsub(/[\\\/\s]/, &#8216;_&#8217;) + &#8216;.gpx&#8217;
+render :xml =&gt; xml
+end
+end
+end
+</filter:code>
+<p>There is one catch: gpx is not a common <span class="caps">MIME</span> type, and must be added to environment.rb in order to be recognized.  This is simple enough, just add the following line to environment.rb</p>
+<filter:code lang="ruby" theme="blackboard">
+<p>Mime::Type.register &#8220;text/xml&#8221;, :gpx</p>
+</filter:code>
+<p>One last note!  Having a <span class="caps">MIME</span> type of <span class="caps">XML</span> will cause most browsers to show the file inline.  However, we want a user to be prompted to save the file.  This is a simple hack, and can be seen in the above code snippet where I am mucking with the response headers.  We tell the header that the content is an attachment, and give it a filename.  The regex is there to turn &#8216;/&#8217;, &#8216;\&#8217; and spaces into underscores, to be friendly across platforms.</p>
+<p>That&#8217;s it!  From here it is easy enough to extend support to other <span class="caps">XML</span> types.  Merely add another method to format a particular type of <span class="caps">XML</span>, add another <span class="caps">MIME</span> type and another entry in respond_to.</p>
+  </div>
+</div>
+
+    </section>
+  </body>
+</html>

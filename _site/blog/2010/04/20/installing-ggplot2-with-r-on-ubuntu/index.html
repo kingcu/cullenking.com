@@ -1,0 +1,36 @@
+<!DOCTYPE HTML>
+
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="Cullen King" content="blawg blawg blawg" />
+    <title>Installing ggplot2 with R on Ubuntu</title>
+  </head>
+  <body>
+    <header>
+      <h1><a href="/">Home</a></h1>
+    </header>
+    <section>
+      <div class="content">
+  <div id="post">
+    <h1></h1>
+    <p>Had an issue installing the ggplot2 library for making a few graphs using R.  I ran into a snag when I opened up the R console and tried to install the library, getting an error:</p>
+<filter:code lang="xml" theme="blackboard">
+&gt; install.packages(&#8220;ggplot2&#8221;)
+install.packages(&#8220;ggplot2&#8221;) : package ‘plyr’ is not available
+</filter:code>
+<p>Turns out, Ubuntu has an older version of R than the latest ggplot requires, so, I had to pull down and install R from source.  Not too hard, you can get the source at <a href="http://cran.r-project.org/">The Comprehensive R Archive Network</a></p>
+<p>Installing from source is as simple as the standard:</p>
+<filter:code lang="xml" theme="blackboard">
+./configure
+make -j8
+sudo make install
+</filter:code>
+<p>where -j8 is taking advantage of the quad-core processor in my machine.<br />
+Enjoy!</p>
+  </div>
+</div>
+
+    </section>
+  </body>
+</html>

@@ -1,0 +1,90 @@
+--- 
+layout: post
+title: Converting DEM from GeoTIFF to GridFloat with C Source
+disqus_id: /2010/6/2/converting-dems-from-geotiff-to-gridfloat
+categories: 
+  []
+---
+
+
+I just recently acquired a patched and improved SRTM elevation dataset for the entire world.  This will allow our route planner to use only our own elevation service rather than relying on the USGS and geonames for elevations outside the United States.  However, the format choices for the DEM was either GeoTIFF or an ASCII grid.  Since the ASCII grid of elevations just means the elevations are literally space delimited in a plain ASCII file, I decided that was a huge waste of space.
+
+However, after spending a bit of time learning about GDAL then writing a program in C (made a ruby module), I found out that accessing individual pixels in a GeoTIFF using GDAL is slowwww.  So slow, that it was unusable for our application.  After poking around and thinking, I decided to drop the GeoTIFF format and to convert the files to a good old GridFloat.  The GridFloat format is very simple: it's a binary file where each 32 bits is an elevation.  You can easily calculate where in the binary file to access your elevation by knowing the latitude and longitude of the corner, and that the binary file is a flattened 2D array of elevation data in row-major order.  Meaning, the first X bits of the file are row1 of the grid, followed by row2, etc etc.
+
+My first conversion program was naive, and it read the TIFF pixel by pixel, writing each pixel to the output file individually.  As expected, this was incredibly slow considering each TIFF was a 6001x6001 grid of pixels.  Converting a single 69mb TIFF took 3-5 minutes.
+
+My second iteration of the program read row by row, writing each row to the output file, and was considerably faster, clocking in at only 3 seconds per file.  However, I realized that each read then write was sending the disk head all over the platter, and was definitely inefficient.  So, I sacrificed some RAM and just read the entire TIFF into an array, then wrote that array to disk using a single fwrite() call.  This ended up being incredibly fast, taking only 1 second to read a 69 meg TIFF and writeout a 138 meg GridFloat file.
+
+Here is the final conversion code:
+
+<filter:code lang="c" theme="blackboard">
+#include <stdlib.h>
+#include <math.h>
+#include "gdal.h"
+
+int main(int argc, char *argv[]) {
+        char *filename = argv[1];
+        char *outfilename = argv[2];
+        char *headerfilename = argv[3];
+        char str[128];
+        GDALDatasetH dataset;
+        GDALRasterBandH *band;
+        int xSize;
+        int ySize;
+        int i, j;
+        double geoTransform[9];
+        int sizee = sizeof(float);
+        int count = 6001*6001;
+        float *outt = malloc(sizeof(float)*count);
+        float *window;
+        FILE *outfp;
+
+        GDALAllRegister(); //initialize GDAL
+
+        dataset = GDALOpen(filename, GA_ReadOnly);
+        if(dataset == NULL) {
+                fprintf(stderr, "Couldn't open geotiff file %s\n", filename);
+                return 0;
+        }   
+
+        band = GDALGetRasterBand(dataset, 1); 
+
+        xSize = GDALGetRasterXSize(band);
+        ySize = GDALGetRasterYSize(band);
+        window = (float *) CPLMalloc(sizeof(float)*xSize);
+
+        GDALGetGeoTransform(dataset, geoTransform);
+        if((outfp = fopen(outfilename, "w")) == NULL) {
+                printf("shit, something went wrong opening file");
+                fflush(stdout);
+                exit(1);
+        }   
+
+        /*  
+         * If I naively just loop through each pixel and write that pixel, it takes so long to actually
+         * perform the conversion.  So we loop through row then order them in-memory
+         * in an array, then write that array in a single fwrite call.  This is orders of
+         * magnitude faster!  1 second vs 3-5 minutes per 69 meg in -> 138 meg out file.
+         */
+        for(i = 0; i < xSize; i++) {
+                GDALRasterIO(band, GF_Read, 0, i, xSize, 1, window, ySize, 1, GDT_Float32, 0, 0); 
+                for(j = 0; j < ySize; j++) {
+                        outt[j + i*xSize] = window[j];
+                }
+        }   
+        fwrite(outt, sizee, count, outfp);
+        fclose(outfp);
+
+        outfp = fopen(headerfilename, "w");
+        sprintf(str, "ncols         10812\nnrows         10812\n");
+        fputs(str, outfp);
+        sprintf(str, "xllcorner     %f\nyllcorner     %f\n", geoTransform[0], geoTransform[3] - 5.0008333333333);
+        fputs(str, outfp);
+        sprintf(str, "cellsize      0.0008333333333\nNODATA_value  -32768\nbyteorder     LSBFIRST\n");
+        fputs(str, outfp);
+        fclose(outfp);
+
+        exit(0);
+}
+</filter:code>
+

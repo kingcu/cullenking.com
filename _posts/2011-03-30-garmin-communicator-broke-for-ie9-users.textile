@@ -1,0 +1,101 @@
+--- 
+layout: post
+title: Garmin Communicator broke for IE9 users
+disqus_id: /2011/3/30/garmin-communicator-broke-for-ie9-users
+categories: 
+  []
+---
+
+
+If you have the Garmin Communicator API integrated into your site, and you have noticed IE9 no longer works with the new FIT enabled devices, it's not your fault!  While I don't know if it's a bug in the Communicator plugin or an intentional move by Garmin, Connect is the only site which allows IE9 users with FIT enabled devices like the Edge 500 and Edge 800 series to sync.
+
+However, there's a simple solution.  You just have to jump into the Communicator javascript API and change a few things.  The problem is that the actual browser plugin says that the device doesn't support the FIT file format.  The solution is "faking" the results for users with the newer devices.
+
+To fake out the plugin, I simply use a regular expression to check that the actual name of the GPS device matches a FIT enabled device.  In this solution I only have a regex that detects Edge 500 and Edge 800 devices, and you may want to expand the expression to other devices.
+
+First, open up GarminDevicePlugin.js and head to the initialize function, which is around line 51.
+
+<filter:code lang="javascript" theme="blackboard">
+
+  initialize: function(pluginElement) {        
+      this.plugin = pluginElement;
+      this.unlocked = false;
+      this.deviceName = "";
+      //console.debug("DevicePlugin constructor supportsFitnessWrite="+this.supportsFitnessWrite)
+  },
+
+</filter:code>
+
+Notice how I added the field deviceName to the class object.  We will use this to assign the first detected device's name to the plugin, so that it can use a regex later.  In order to assign this value when the device itself is detected, we have to modify GarminDeviceControl.js at line 240:
+
+<filter:code lang="javascript" theme="blackboard">
+
+     _finishFindDevices: function() {
+      	  if(this.garminPlugin.finishFindDevices()) {
+              this.devices = Garmin.PluginUtils.parseDeviceXml(this.garminPlugin, this.getDetailedDeviceData);
+              this.numDevices = this.devices.length;
+              this.deviceNumber = 0;
+              if(this.devices.length > 0) this.garminPlugin.deviceName = this.devices[0].getDisplayName();
+              this._broadcaster.dispatch("onFinishFindDevices", {controller: this});
+         } else {
+            setTimeout(function() { this._finishFindDevices() }.bind(this), 500);
+         }
+     },
+
+</filter:code>
+
+We only assign the device name if there actually is a device detected.  Also it is important that we do this before the onFinishFindDevices event is dispatched.
+
+Final piece of the puzzle is actually using this information.  To do this, we head back to GarminDevicePlugin.js and head to line 161 and the function "getSupportsFitnessDirectoryRead".  There are a few functions we want to add this check to, including "getSupportsFitDirectoryRead".  I simply added another function to do the actual checking which returns true or false, then call that function wherever I need to.
+
+<filter:code lang="javascript" theme="blackboard">
+
+      isFitEnabledEdge: function() {
+          if(this.deviceName.match(/edge (5|8)00/i)) return true;
+          return false;
+      },
+	
+	/** Lazy-logic accessor to fitness write support var.
+	 * This is used to detect whether the user's installed plugin supports fitness writing.
+	 * Fitness writing capability has a minimum requirement of plugin version 2.2.0.1.
+	 * This should NOT be called until the plug-in has been unlocked.
+	 */
+	getSupportsFitnessWrite: function() {
+            if(this.isFitEnabledEdge()) return true;
+            return this._getPluginFunctionExists("StartWriteFitnessData"); 
+	},
+	
+	/** Lazy-logic accessor to fitness write support var.
+	 * This is used to detect whether the user's installed plugin supports fitness directory reading,
+	 * which has a minimum requirement of plugin version 2.2.0.2.
+	 * This should NOT be called until the plug-in has been unlocked.
+	 */
+	getSupportsFitnessDirectoryRead: function() {	
+            if(this.isFitEnabledEdge()) return true;
+            return this._getPluginFunctionExists("StartReadFitnessDirectory");
+	},
+
+	/** Lazy-logic accessor to FIT read support var.
+	 * This is used to detect whether the user's installed plugin supports FIT directory reading,
+	 * which has a minimum requirement of plugin version 2.8.1.0.
+	 * This should NOT be called until the plug-in has been unlocked.
+	 */
+	getSupportsFitDirectoryRead: function() {		
+            if(this.isFitEnabledEdge()) return true;
+            return this._getPluginFunctionExists("StartReadFITDirectory");
+	},
+	
+	/** Lazy-logic accessor to fitness read compressed support var.
+	 * This is used to detect whether the user's installed plugin supports fitness reading in compressed format,
+	 * which has a minimum requirement of plugin version 2.2.0.2.
+	 * This should NOT be called until the plug-in has been unlocked.
+	 */
+	getSupportsFitnessReadCompressed: function() {
+            if(this.isFitEnabledEdge()) return true;
+            return this._getPluginFieldExists(this.plugin.TcdXmlz);
+	},
+
+</filter:code>
+
+There may be more places where this is needed, but this works for my simple use cases, merely reading files from GPS devices.  Hope this helps!
+

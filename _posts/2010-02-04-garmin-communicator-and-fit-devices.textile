@@ -1,0 +1,23 @@
+--- 
+layout: post
+title: Garmin Communicator and FIT devices
+disqus_id: /2010/2/4/garmin-communicator-and-fit-devices
+categories: 
+  []
+---
+
+
+This week I attempted to get our Garmin Communicator implementation for "http://ridewithgps.com":http://ridewithgps.com to support Garmin's new line of cycling computers, the Edge 500.  The 500 uses a new file format, and a new protocol to get files off the device, that is definitely a step backwards for third party developers.  After some amount of wrestling attempting to get the 500 to play nicely with Communicator, I realized that Garmin must have disabled third party sites from using Communicator to sync with new FIT devices.
+
+We know the plugin and associated javascript are capable of it, since both are the same on Garmin's own site, so the only thing that must be different is only their site is permitted to use the methods needed to get data off the device.  I am not quite sure the motivation, perhaps they are doing this to make sure everything goes smooth and all errors get fixed before releasing the functionality to the rest of the developers.
+
+So, for anyone working with an Edge 500 and Garmin Communicator, the exception being thrown by the plugin when executing the method getBinaryFile() which states 'Web site is not privileged' is just letting you know you are locked out until they release an update.  There is no current expected release date for this functionality.
+
+From Garmin Connect's Twitter account:
+
+"@cullenking Looking into opening it up. No time line as of yet."
+
+And, from their forum:
+
+"https://forums.garmin.com/showthread.php?t=5692":https://forums.garmin.com/showthread.php?t=5692
+

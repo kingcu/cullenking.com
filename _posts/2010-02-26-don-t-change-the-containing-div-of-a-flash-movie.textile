@@ -1,0 +1,15 @@
+--- 
+layout: post
+title: Don't change the containing div of a flash movie!
+disqus_id: /2010/2/26/don-t-change-the-containing-div-of-a-flash-movie
+categories: 
+  []
+---
+
+
+I just tracked down a bug that was affecting some versions of Firefox on Windows, which is usually not a combination to worry about or test for!
+
+To combat weird z-index issues between flash and HTML under Linux, we have been moving the flash movie off screen and changing some styles, then moving it back when the overlay is closed.  One of the styles being changes was the overflow property of the DIV containing the flash movie.  This style change was causing the flash movie to be completely reloaded, which broke all ExternalInterface callbacks setup on the flash movie.
+
+Removing the offending style changes solved the problem.  What a pain to track down!
+

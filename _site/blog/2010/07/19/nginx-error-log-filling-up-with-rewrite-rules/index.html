@@ -1,0 +1,29 @@
+<!DOCTYPE HTML>
+
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="Cullen King" content="blawg blawg blawg" />
+    <title>nginx error log filling up with rewrite rules</title>
+  </head>
+  <body>
+    <header>
+      <h1><a href="/">Home</a></h1>
+    </header>
+    <section>
+      <div class="content">
+  <div id="post">
+    <h1></h1>
+    <p>I will be the first to admit that I am not a stellar sysadmin, however I met a new low when I realized my nginx error log for my <a href="http://ridewithgps.com">bike route mapping</a> site was filled with 5 gigs of rewrite notifications.  After thinking the solution would be easy, simply setting rewrite_log to off, I found out that didn&#8217;t actually do anything.</p>
+<p>So, if you are trying to turn off rewrite rule logging in your nginx error log, you must do two things:</p>
+<p>First, add</p>
+<strong>rewrite_log off;</strong>
+<p>to your main configuration.  Then, make sure each error_log declaration has a level other than critical.  I picked &#8216;warn&#8217;, and we&#8217;ll see if this fills up quick.  My guess is for heavy hit sites, &#8216;error&#8217; is the correct value.  Your error log line should look like:</p>
+<strong>error_log /var/log/nginx.ridewithgps.com.error.log warn;</strong>
+<p>With those changes you should have a much smaller error log footprint, and grepping through your logs won&#8217;t grind on your disks too much.</p>
+  </div>
+</div>
+
+    </section>
+  </body>
+</html>

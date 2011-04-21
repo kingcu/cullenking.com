@@ -1,0 +1,120 @@
+<!DOCTYPE HTML>
+
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="Cullen King" content="blawg blawg blawg" />
+    <title>gnuplot bindings for ruby means nice graphs for rails</title>
+  </head>
+  <body>
+    <header>
+      <h1><a href="/">Home</a></h1>
+    </header>
+    <section>
+      <div class="content">
+  <div id="post">
+    <h1></h1>
+    <p>In experimenting with different filtering functions for elevation data, I needed a way to generate graphs easily from some ruby code.  It was too cumbersome to output a <span class="caps">CSV</span> and open that in another graphing application.  Unfortunately, Ruby lacks some of the awesome libraries like SciPy which is available for Python.  However, any computer running Linux or <span class="caps">OSX</span> comes with the tried and true gnuplot, a simple but powerful graphing program.  Just generate a text file filled with directions for gnuplot, load it up in gnuplot and away you go!</p>
+<p>Luckily, there is a rubygem available to make working with gnuplot a bit easier than string concatenation.  Easy to remember, it&#8217;s just called &#8216;gnuplot&#8217;.  Outdated website <a href="http://rgplot.rubyforge.org/">here</a></p>
+<p>First check that gnuplot is installed by running gnuplot at the command line, and install it if needed.  Then go ahead and install the rubygem.</p>
+<filter:code lang="xml" theme="blackboard">
+kingcu@kingcu-desktop:~/ridewithgps$ sudo gem install &#8216;gnuplot&#8217;
+</filter:code>
+<p>After that is out of the way, we are ready to go!  I cooked up this simple ruby class, ModelPlotter, to graph whatever from a rake task:</p>
+<filter:code lang="xml" theme="blackboard">
+<p>require &#8216;rubygems&#8217;<br />
+require &#8216;gnuplot&#8217;</p>
+<p>class ModelPlotter<br />
+  def initialize(sets, outfile=&#8216;plot.png&#8217;, title=&#8216;graphing things&#8217;, xlabel=&#8216;x&#8217;, ylabel=&#8216;y&#8217;)<br />
+    @sets = sets<br />
+    @outfile = outfile<br />
+    @title = title<br />
+    @xlabel = xlabel<br />
+    @ylabel = ylabel<br />
+  end</p>
+def plot
+sets = []
+@sets.each do |s|
+sets &lt;&lt; Gnuplot::DataSet.new(generate_vals(s)) { |ds|
+ds.with = &#8216;lines&#8217;
+ds.title = s[:title]
+ds.linewidth = 1
+}
+end
+write_plot(sets)
+end
+private
+def generate_vals(set)
+xvals = []
+yvals = []
+lines = set[:data].split(&#8220;\n&#8221;)
+lines.each do |line|
+vals = line.split(&#8216;,&#8217;)
+xvals &lt;&lt; vals<sup class="footnote" id="fnr0"><a href="#fn0">0</a></sup>.to_f
+yvals &lt;&lt; vals<sup class="footnote" id="fnr1"><a href="#fn1">1</a></sup>.to_f
+end
+return xvals, yvals
+end
+def write_plot(sets)
+File.open(@outfile, &#8216;w&#8217;) do |gp|
+Gnuplot::Plot.new(gp) do |plot|
+plot.term &#8216;png size 800, 600&#8217;
+plot.output @outfile.gsub(/\.[\w]*$/, &#8216;.png&#8217;)
+plot.title @title
+plot.ylabel @ylabel
+plot.xlabel @xlabel
+plot.data = sets
+end
+end
+end
+<p>end</p>
+</filter:code>
+<p>Looking at the plot and write_plot methods shows us the basics of how to use gnuplot for ruby.  First generate some sets, then pass those sets to your plot object.  The block you just created gets yielded, and a file gets created filled with gnuplot directives.  I chose to just save the gnuplot text files, since they are smaller in size than an actual png plot, and I can keep them in version control easily enough.</p>
+<p>The rake task I wrote, to give me graphs of model numbers since my site launched is below.  Warning!  This code is not performant.  There is an <span class="caps">SQL</span> query for every row in the table.  If you have many things in your table, this will be ver slow!  I just slapped that out as a quick proof of concept this morning, using a small dataset.  It&#8217;s up to the reader to make that more efficient.</p>
+<filter:code lang="ruby" theme="blackboard">
+<p>equire &#8216;model_plotter&#8217;</p>
+<p>namespace :graph do<br />
+  desc &#8216;create a gnuplot file for <model> creation numbers since day 1&#8217;<br />
+  task :graph_model_totals, [:model] =&gt; :environment do |t, args|<br />
+    args.with_defaults(:model =&gt; &#8220;User&#8221;)<br />
+    model = eval(args[:model])<br />
+    models_by_day = {}<br />
+    start_date = model.find(:first).created_at + 1.day<br />
+    end_date = Time.now + 1.day<br />
+    index = 0</p>
+while start_date &lt; end_date
+models_by_day[index] = model.count(:all, :conditions =&gt; [&#8216;created_at &lt; ?&#8217;, start_date])
+start_date += 1.day
+index += 1
+end
+keys = []
+models_by_day.each_key { |k| keys &lt;&lt; k }
+keys.sort!
+res = []
+keys.each { |k| res &lt;&lt; &#8220;#{k},#{models_by_day[k]}&#8221; }
+res = res.join(&#8220;\n&#8221;)
+sets = [ {:data =&gt; res, :title =&gt; args[:model] + &#8216;s&#8217; } ]
+ylabel = &#8220;Number of #{args[:model]}s&#8221;
+xlabel = &#8220;Days from launch&#8221;
+title = &#8220;Total #{args[:model]}s by day since first user, Oct 29, 2007&#8221;
+plotter = ModelPlotter.new(sets, &#8216;plotfile.plot&#8217;, title, xlabel, ylabel)
+plotter.plot
+end
+<p>end</p>
+</filter:code>
+<p>You pass parameters to the rake task using bracket notation:</p>
+<filter:code lang="xml" theme="blackboard">
+kingcu@kingcu-desktop:~/ridewithgps$ rake graph:graph_model_totals[User]
+</filter:code>
+<p>To generate a plot from the file &#8216;plotfile.plot&#8217;:</p>
+<filter:code lang="xml" theme="blackboard">
+kingcu@kingcu-desktop:~/ridewithgps$ gnuplot plotfile.plot
+</filter:code>
+<p>This will kickout a png, &#8216;plotfile.png&#8217;.  Do with it what you want!  If you want to do something more advanced, read through the gnuplot <a href="http://www.gnuplot.info/docs/gnuplot.html">documentation</a></p>
+<p><img src="/images/plotfile.png" alt="" /></p>
+  </div>
+</div>
+
+    </section>
+  </body>
+</html>

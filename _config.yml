@@ -1,0 +1,5 @@
+auto: true
+server: true
+permalink: /blog/:year/:month/:day/:title
+markdown: maraku
+pygments: true

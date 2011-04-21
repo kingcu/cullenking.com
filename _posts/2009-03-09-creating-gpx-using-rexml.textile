@@ -1,0 +1,133 @@
+--- 
+layout: post
+title: Creating GPX using REXML
+disqus_id: /2009/3/9/creating-gpx-using-rexml
+categories: 
+  []
+---
+
+
+Today I added the ability to export GPX files to ridewithgps.com.  I will start with a bit of a pre-amble concerning routes, trips and data interchange formats (GPX, JSON) then get down to the details.
+
+On RWGPS, routes are a higher level concept than trips.  In simple terms, a route is some favourite ride you repeatedly go on.  Each individual ride on your favourite set of backroads is a trip on that route.  So a route is, conversationally, something you'd mention to a friend.  "Hey, want to go hit the Alsea Falls loop today"?  Later, after completing the ride, you would upload your logfile to RWGPS, storing the trip under the 'Alsea Falls Loop' route.  The reason I make this distinction is that a route will never have biometric or time information associated with it; the route is just some path.  However, any trip taken on that route potentially has information such as heartrate, pedal speed (cadence), speed, direction etc.
+
+All routes/trips are stored as JSON strings inside the database.  Each JSON string is an array of objects, which have 'lat', 'lng', 'ele', 'hr', 'cad' and 'time' values.  This has allowed us to easily store and retrieve these values when needed, since JSON is an ideal interchange format when working with JavaScript or ActionScript.  JSON is much lighter than any other interchange format, and is extremely easy to use in most programming languages.  Since the route planner/viewer is written in ActionScript, the passed in JSON string can be turned into an array of AS objects with a single declaration, 'JSON.decode(jsonString)'.
+
+Since we live in the real world, we have to use established standards.  GPX is THE established standard for GPS information, however being XML it is a fairly clumsy way to store our GPS routes.  It doesn't support extra information such as heartrate, cadence, speed, heading etc.  This is fine for our routes since they have limited data, but we will be losing information for trips.  However it is a simple format to create, and is extremely widespread in use.  Enough side information, how is it done?
+
+A GPX document starts with a <gpx> rootnode, which has several required attributes.  First off, you must declare a version.  For most the time tested standard 1.0 will be adequate.  Additionally, an attribute 'creator' needs to be declared to describe who authored the document, so any problems can be reported to the author.  Next declare the xml namespace, which is hosted on the topografix domain, along with their XSI.  After these attributes have been defined, we should see something like:
+
+<filter:code lang="xml" theme="blackboard">
+<gpx xsi:schemaLocation='http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd' 
+  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' 
+  creator='http://ridewithgps.com/' 
+  version='1.0' 
+  xmlns='http://www.topografix.com/GPX/1/0'>
+</gpx>
+</filter:code>
+
+The code to do so:
+
+<filter:code lang="ruby" theme="blackboard">
+    xml = REXML::Document.new
+    gpx = xml.add_element 'gpx', {'xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
+      'xmlns' => 'http://www.topografix.com/GPX/1/0',
+      'xsi:schemaLocation' => 'http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd',
+      'version' => '1.0', 'creator' => 'http://ridewithgps.com/'}
+</filter:code>
+
+Now that we have our rootnode defined, we move on to the rest of the document.  From here on out life is pretty easy.  We add an optional <time> node to declare the GPX file creation time, followed by an opening node, <trk> to declare we are starting a new track.  Inside this new node, we declare a track segment with another node, <trkseg>.
+
+<filter:code lang="ruby" theme="blackboard">
+    gpx.add_element('name').add REXML::Text.new(asset.name)
+    gpx.add_element('author').add REXML::Text.new('RideWithGPS LLC') 
+    gpx.add_element('url').add REXML::Text.new(url)
+    gpx.add_element('time').add REXML::Text.new(time)
+    trk = gpx.add_element 'trk'
+    trkseg = trk.add_element 'trkseg'
+</filter:code>
+
+This gives us some XML that looks like:
+
+<filter:code lang="xml" theme="blackboard">
+  <name>
+    03/10/09
+  </name>
+  <author>
+    RideWithGPS LLC
+  </author>
+  <url>
+    http://ridewithgps.com/routes/157
+  </url>
+  <time>
+    2009-03-10T13:54:46Z
+  </time>
+  <trk>
+    <trkseg>
+   </trkseg>
+  <trk>
+</filter:code>
+
+Now we have our document mostly constructed, we just have to fill the track segment with individual track points.  These track points have two attributes, 'lat' and 'lon'.  Elevation and point capture time are stored as children nodes, <ele> and <time>.  We are storing time as the pretty universal unix timestamp, which will need to be converted to UTC / ISO8601 using strftime.
+
+<filter:code lang="ruby" theme="blackboard">
+    json.each do |pt|
+      elem = trkseg.add(REXML::Element.new('trkpt'))
+      elem.add_attributes({'lat' => pt['lat'], 'lon' => pt['lng']})
+      elem.add_element('ele').add(REXML::Text.new(pt['ele'].to_s))
+      if pt['time']
+        time = Time.at(pt['time']).strftime("%Y-%m-%dT%H:%M:%SZ")
+        elem.add_element('time').add(REXML::Text.new(time))
+      end
+    end
+</filter:code>
+
+The code is simple enough: we add our track point to the segment, and add a time timestamp if we have one, formatted in UTC, ISO8601 "(wikipedia)":http://en.wikipedia.org/wiki/ISO_8601
+
+That's it!  We get a pretty file output with REXML if we use their pretty formatted (yes, it's actually called the pretty formatter).  Using this formatter, we can declare how many spaces to use for indention and a few other options.  Lookup the API for specifics.
+
+<filter:code lang="ruby" theme="blackboard">
+    output = String.new
+    formatter = REXML::Formatters::Pretty.new
+    formatter.write(gpx, output)
+    return output
+</filter:code>
+
+Now, there are several other things we could include with this GPX file if we wanted.  GPX allows for vendor extensions and the like, however, we are interested in a widely compatible output, so keep it simple.  Read the "GPX schema":http://www.topografix.com/GPX/1/1/gpx.xsd for more information:
+
+Now, on to the final bit.  We want to keep our controls simple, and our routes predictable.  Since we are using Rails, leveraging Rails services is a cake.  Our current URL for accessing routes or trips are:
+
+  http://ridewithgps.com/[route/trip]/[id]
+
+We want to be able to do something as simple as append a .gpx to the end of a path to get the outputted XML file.  Rails and respond_to make this super simple.  We just add 'gpx' to our respond_to call and the block associated with it will be executed.
+
+<filter:code lang="ruby_on_rails" theme="blackboard">
+  def show
+    @asset = Route.find(params[:id])
+    
+    respond_to do |wants|
+      wants.html do
+        @user = @asset.user if @asset.group_membership
+        @trips = @asset.trips
+      end 
+      wants.json { render :text => @asset.data_full }
+      wants.gpx do  
+        worker = MiddleMan.new_worker(:worker => :xml_processor_worker)
+        xml = MiddleMan.worker(:xml_processor_worker).generate(:arg => {:type => :route, :id => params[:id]})
+        response.headers['Content-Disposition'] = 'attachment; filename=' + @asset.name.gsub(/[\\\/\s]/, '_') + '.gpx'
+        render :xml => xml 
+      end 
+    end 
+  end 
+</filter:code>
+
+There is one catch: gpx is not a common MIME type, and must be added to environment.rb in order to be recognized.  This is simple enough, just add the following line to environment.rb
+
+<filter:code lang="ruby" theme="blackboard">
+Mime::Type.register "text/xml", :gpx
+</filter:code>
+
+One last note!  Having a MIME type of XML will cause most browsers to show the file inline.  However, we want a user to be prompted to save the file.  This is a simple hack, and can be seen in the above code snippet where I am mucking with the response headers.  We tell the header that the content is an attachment, and give it a filename.  The regex is there to turn '/', '\' and spaces into underscores, to be friendly across platforms.
+
+That's it!  From here it is easy enough to extend support to other XML types.  Merely add another method to format a particular type of XML, add another MIME type and another entry in respond_to.
+

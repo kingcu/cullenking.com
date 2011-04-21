@@ -1,0 +1,51 @@
+<!DOCTYPE HTML>
+
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="Cullen King" content="blawg blawg blawg" />
+    <title>Nanite, Rails, Redis deployment gotchas</title>
+  </head>
+  <body>
+    <header>
+      <h1><a href="/">Home</a></h1>
+    </header>
+    <section>
+      <div class="content">
+  <div id="post">
+    <h1></h1>
+    <p>One of the problems (joys?) with new and exciting open source software is the relative scarcity of information available.  Compound this with powerful/complex software and you get  a real recipe for learning.  This has been the case with getting a reliable Nanite deployment for <a href="http://ridewithgps.com">http://ridewithgps.com.</a>  Nanite is an incredibly powerful distributed background worker written in Ruby, which leverages the <span class="caps">AMQP</span> messaging protocol and the RabbitMQ server for fast, efficient and safe job creation and passing.  I am not going to bother detailing what Nanite is, since that information is readily available on the GitHub page, but rather am going to talk about a few gotchas.</p>
+<p>Nanite is fairly simple to get running, however there are a few caveats.  If you plan on using it with a Rails application, you have some choices: you can either do a few things by hand (not too bad) or you can use the nanite-rails plugin.  I started with the plugin, but decided less is better and stripped it out, and am now just running Nanite plain.  The one thing I did keep was the nanite.rb initializer file for getting started with various servers.  Since I test locally on thin and deploy on Passenger, using the nanite-rails provided script worked well.</p>
+<p>The first issue I noticed, is that multiple agents were receiving the same message (job) from my rails mapper(s) when the job was pushed from within an agent itself, rather from code in the mappers eventmachine loop.  Simply put: all agents were receiving the same job when the job was sent from within an agent.  It turns out that this is due to each mapper having no idea what other mappers are doing.  This is possibly considered a &#8220;feature&#8221; and may or may not be addressed by the Nanite developers.  The reason they are non-committal is due to the fact the problem is solved when you couple Nanite with Redis.  If you don&#8217;t know what Redis is, go ahead and readup, but basically it is a key/value storage similar to memcached, except it can persist data to disk and you can store simple data structures within, rather than plain strings.  In any event, Nanite can use Redis to store state, which is central to all mappers.  This way, every mapper knows about every other mapper, and duplicate requests are not assigned to agents.</p>
+<p>Here is a <a href="http://github.com/ezmobius/nanite/issues#issue/7">direct link</a> to the issue.</p>
+<p>To use Redis with Nanite, simply include a configuration option when starting a mapper:</p>
+<filter:code lang="ruby" theme="blackboard">
+<p>Nanite.start_mapper(:host =&gt; &#8216;localhost&#8217;, &#8230;., :redis =&gt; &#8220;REDIS_HOST:REDIS_PORT&#8221;)</p>
+</filter:code>
+<p>If you don&#8217;t want to use Redis, the problem can be worked around with some massaging of the Nanite code.  You can checkout how this is done by visiting <a href="http://github.com/nofxx/nanite/commit/7804058cf297088f063cf5d1d2695c8b15ab71a0">nofxx&#8217;s fork</a> of Nanite on GitHub and seeing what he did.</p>
+<p>The next problem I encountered was my agents getting swamped with messages, timing out and freezing.  The reason this happens, is that RabbitMQ stuffs data down a socket and keeps it full.  The moment that socket is emptied, RabbitMQ shoves more down the socket.  However on the receiving end the <span class="caps">AMQP</span> client utilizes EventMachine, which has a reactor loop that visits each socket within the loop in turn.  It keeps a connection open to the socket corresponding to the queue it is subscribed to (queue for that agent), and blocks while that socket is full, meaning it is unable to move on to the next socket/queue.  So, RabbitMQ keeps the socket full and EventMachine keeps emptying the socket as long as it is full, and we get a recipe for a headache.</p>
+<p>RabbitMQ versions 1.6.0 and greated now have a configuration option called &#8220;prefetch&#8221;.  This option limits the number of messages to stuff into that socket at any one time.  So, where you would have 100+ messages in a socket by default, always causing that socket to be full, you can now tell RabbitMQ to give you one message at a time in the socket.  This allows EventMachine to keep up with all the sockets.  If you have longer running tasks (multiple seconds), setting prefetch to 1 will keep everything happy.  If you can slam through tons of messages a second, larger prefetch values will avoid extra looping and can help speed things up.</p>
+<p>Now this is where we have a problem!!!  Nanite offers a prefetch configuration option, but it is only on the mapper!  The problem we need to solve is the queues corresponding to the agents, so the prefetch configuration option needs to be set for agent queues, not the mapper queue (which can handle large numbe of messages, since they are just acks, pings and responses from agents).  This is where we need to dive into the Nanite source and change some stuff.  The less adventerous can just pull my <a href="http://github.com/kingcu/nanite">Nanite fork</a> on GitHub until these changes are accepted upstream, the more adventerous can look at how the prefetch option is passed to the mapper, and repeat it on the agent.  You can see below my modified setup_queue() method, with the first three lines added.</p>
+<filter:code lang="ruby" theme="blackboard">
+def setup_queue
+if amq.respond_to?(:prefetch) &amp;&amp; @options.has_key?(:prefetch)
+amq.prefetch(@options[:prefetch])
+end
+amq.queue(identity, :durable =&gt; true).subscribe(:ack =&gt; true) do |info, msg|
+begin
+info.ack
+receive(serializer.load(msg))
+rescue Exception =&gt; e
+Nanite::Log.error(&#8220;<span class="caps">RECV</span> #{e.message}&#8221;)
+end
+end
+end
+</filter:code>
+<p>Finally, I was having problems with intermittently losing jobs spawned from my web interface, which is deployed on passenger.  After a huge amount of struggling, I finally conceded that eventmachine and passenger are not compatible in passengers smart spawning mode.  So, I set passengers spawning mode to conservative and enjoyed a much more robust deployment!</p>
+<p>I am sure some more info will follow, but this should be enough to get you going.</p>
+  </div>
+</div>
+
+    </section>
+  </body>
+</html>

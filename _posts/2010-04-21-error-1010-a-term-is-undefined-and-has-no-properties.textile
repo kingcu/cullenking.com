@@ -1,0 +1,11 @@
+--- 
+layout: post
+title: Error #1010: A term is undefined and has no properties
+disqus_id: /2010/4/21/error-1010-a-term-is-undefined-and-has-no-properties
+categories: 
+  []
+---
+
+
+If you see this error popup while working with ActionScript 3, it's most likely because you are trying to access a property of a null object.  It happens most often to me when looping through an array and having an element be null unexpectedly.  It's a pretty undescriptive message, but easily fixed.
+

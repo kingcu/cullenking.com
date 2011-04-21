@@ -1,0 +1,19 @@
+--- 
+layout: post
+title: Did Mongoid Break Your Migrations?
+disqus_id: /2011/3/18/did-mongoid-break-your-migrations
+categories: 
+  []
+---
+
+
+When using Mongoid and ActiveRecord side by side, a default install will break your ability to run rails migrations and generators.  This is because Mongoid pushes aside ActiveRecord and assumes the tasks of migrations, which if you know anything about MongoDB or other document stores, is not needed.  The solution is simple - tell ActiveRecord that you want to use it for generators with the following snippet added to your application.rb file:
+
+<filter:code lang="ruby" theme="blackboard">
+
+    config.generators do |g| 
+      g.orm :active_record 
+    end
+
+</filter:cod>
+

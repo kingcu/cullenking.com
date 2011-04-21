@@ -1,0 +1,11 @@
+--- 
+layout: post
+title: Using the Edge 800 with turn by turn directions
+disqus_id: /2011/4/7/using-the-edge-800-with-turn-by-turn-directions
+categories: 
+  []
+---
+
+
+I finally got around to putting up some comprehensive information about the Edge 800, specifically in regards to route navigation and Open Street Maps.  Detailed information can be found here on how to "use your Edge 800 for turn by turn directions":http://ridewithgps.com/edge_800 - additionally, the page has information for how to download and load OSM (Open Street Maps) onto an Edge 800 for people who didn't purchase Garmin's City Navigator maps.
+

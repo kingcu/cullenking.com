@@ -1,0 +1,23 @@
+--- 
+layout: post
+title: nginx error log filling up with rewrite rules
+disqus_id: /2010/7/19/nginx-error-log-filling-up-with-rewrite-rules
+categories: 
+  []
+---
+
+
+I will be the first to admit that I am not a stellar sysadmin, however I met a new low when I realized my nginx error log for my "bike route mapping":http://ridewithgps.com site was filled with 5 gigs of rewrite notifications.  After thinking the solution would be easy, simply setting rewrite_log to off, I found out that didn't actually do anything.
+
+So, if you are trying to turn off rewrite rule logging in your nginx error log, you must do two things:
+
+First, add
+
+  *rewrite_log off;*
+
+to your main configuration.  Then, make sure each error_log declaration has a level other than critical.  I picked 'warn', and we'll see if this fills up quick.  My guess is for heavy hit sites, 'error' is the correct value.  Your error log line should look like:
+
+  *error_log /var/log/nginx.ridewithgps.com.error.log warn;*
+
+With those changes you should have a much smaller error log footprint, and grepping through your logs won't grind on your disks too much.
+

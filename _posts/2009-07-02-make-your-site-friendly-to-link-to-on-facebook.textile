@@ -1,0 +1,23 @@
+--- 
+layout: post
+title: Make your site friendly to link to on Facebook
+disqus_id: /2009/7/2/make-your-site-friendly-to-link-to-on-facebook
+categories: 
+  []
+---
+
+
+Here is a quick but helpful tidbit for any site.  You can direct Facebook to a particular preview thumbnail to show when a user links to your page on Facebook.  If you don't specify a thumbnail, Facebook will give a user a few options to choose from.  Where this comes in handy is on pages that don't need that thumbnail visible, but having that thumbnail available as a preview is valuable.
+
+For example, when viewing a route or trip on "http://ridewithgps.com":http://ridewithgps.com there is already a large interactive map of the route for a user to play with.  Placing a thumbnail of that route somewhere on the page becomes redundant on an already cluttered layout.  However, when linking to the route from Facebook we want users to see a small thumbnail preview of the route.  Simply add a link in your head tag like so:
+
+<filter:code lang="html" theme="blackboard">
+
+  <link href='http://ridewithgps.com/routes/2602/thumb.gif' rel='image_src' />
+
+</filter:code>
+
+This will produce a neat looking preview that looks something like this:
+
+!/images/facebookLinkExample.jpg!
+
