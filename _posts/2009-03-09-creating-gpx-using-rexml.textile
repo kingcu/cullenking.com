@@ -17,81 +17,81 @@ Since we live in the real world, we have to use established standards.  GPX is T
 
 A GPX document starts with a <gpx> rootnode, which has several required attributes.  First off, you must declare a version.  For most the time tested standard 1.0 will be adequate.  Additionally, an attribute 'creator' needs to be declared to describe who authored the document, so any problems can be reported to the author.  Next declare the xml namespace, which is hosted on the topografix domain, along with their XSI.  After these attributes have been defined, we should see something like:
 
-<filter:code lang="xml" theme="blackboard">
+<pre data-language="xml" >
 <gpx xsi:schemaLocation='http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd' 
   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' 
   creator='http://ridewithgps.com/' 
   version='1.0' 
   xmlns='http://www.topografix.com/GPX/1/0'>
 </gpx>
-</filter:code>
+</pre>
 
 The code to do so:
 
-<filter:code lang="ruby" theme="blackboard">
-    xml = REXML::Document.new
-    gpx = xml.add_element 'gpx', {'xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
-      'xmlns' => 'http://www.topografix.com/GPX/1/0',
-      'xsi:schemaLocation' => 'http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd',
-      'version' => '1.0', 'creator' => 'http://ridewithgps.com/'}
-</filter:code>
+<pre data-language="ruby" >
+xml = REXML::Document.new
+gpx = xml.add_element 'gpx', {'xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
+  'xmlns' => 'http://www.topografix.com/GPX/1/0',
+  'xsi:schemaLocation' => 'http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd',
+  'version' => '1.0', 'creator' => 'http://ridewithgps.com/'}
+</pre>
 
 Now that we have our rootnode defined, we move on to the rest of the document.  From here on out life is pretty easy.  We add an optional <time> node to declare the GPX file creation time, followed by an opening node, <trk> to declare we are starting a new track.  Inside this new node, we declare a track segment with another node, <trkseg>.
 
-<filter:code lang="ruby" theme="blackboard">
-    gpx.add_element('name').add REXML::Text.new(asset.name)
-    gpx.add_element('author').add REXML::Text.new('RideWithGPS LLC') 
-    gpx.add_element('url').add REXML::Text.new(url)
-    gpx.add_element('time').add REXML::Text.new(time)
-    trk = gpx.add_element 'trk'
-    trkseg = trk.add_element 'trkseg'
-</filter:code>
+<pre data-language="ruby" >
+gpx.add_element('name').add REXML::Text.new(asset.name)
+gpx.add_element('author').add REXML::Text.new('RideWithGPS LLC') 
+gpx.add_element('url').add REXML::Text.new(url)
+gpx.add_element('time').add REXML::Text.new(time)
+trk = gpx.add_element 'trk'
+trkseg = trk.add_element 'trkseg'
+</pre>
 
 This gives us some XML that looks like:
 
-<filter:code lang="xml" theme="blackboard">
-  <name>
-    03/10/09
-  </name>
-  <author>
-    RideWithGPS LLC
-  </author>
-  <url>
-    http://ridewithgps.com/routes/157
-  </url>
-  <time>
-    2009-03-10T13:54:46Z
-  </time>
-  <trk>
-    <trkseg>
-   </trkseg>
-  <trk>
-</filter:code>
+<pre data-language="xml" >
+<name>
+  03/10/09
+</name>
+<author>
+  RideWithGPS LLC
+</author>
+<url>
+  http://ridewithgps.com/routes/157
+</url>
+<time>
+  2009-03-10T13:54:46Z
+</time>
+<trk>
+  <trkseg>
+ </trkseg>
+<trk>
+</pre>
 
 Now we have our document mostly constructed, we just have to fill the track segment with individual track points.  These track points have two attributes, 'lat' and 'lon'.  Elevation and point capture time are stored as children nodes, <ele> and <time>.  We are storing time as the pretty universal unix timestamp, which will need to be converted to UTC / ISO8601 using strftime.
 
-<filter:code lang="ruby" theme="blackboard">
-    json.each do |pt|
-      elem = trkseg.add(REXML::Element.new('trkpt'))
-      elem.add_attributes({'lat' => pt['lat'], 'lon' => pt['lng']})
-      elem.add_element('ele').add(REXML::Text.new(pt['ele'].to_s))
-      if pt['time']
-        time = Time.at(pt['time']).strftime("%Y-%m-%dT%H:%M:%SZ")
-        elem.add_element('time').add(REXML::Text.new(time))
-      end
-    end
-</filter:code>
+<pre data-language="ruby" >
+json.each do |pt|
+  elem = trkseg.add(REXML::Element.new('trkpt'))
+  elem.add_attributes({'lat' => pt['lat'], 'lon' => pt['lng']})
+  elem.add_element('ele').add(REXML::Text.new(pt['ele'].to_s))
+  if pt['time']
+    time = Time.at(pt['time']).strftime("%Y-%m-%dT%H:%M:%SZ")
+    elem.add_element('time').add(REXML::Text.new(time))
+  end
+end
+</pre>
 
 The code is simple enough: we add our track point to the segment, and add a time timestamp if we have one, formatted in UTC, ISO8601 "(wikipedia)":http://en.wikipedia.org/wiki/ISO_8601
 
 That's it!  We get a pretty file output with REXML if we use their pretty formatted (yes, it's actually called the pretty formatter).  Using this formatter, we can declare how many spaces to use for indention and a few other options.  Lookup the API for specifics.
 
-<filter:code lang="ruby" theme="blackboard">
-    output = String.new
-    formatter = REXML::Formatters::Pretty.new
-    formatter.write(gpx, output)
-    return output
-</filter:code>
+<pre data-language="ruby" >
+output = String.new
+formatter = REXML::Formatters::Pretty.new
+formatter.write(gpx, output)
+return output
+</pre>
 
 Now, there are several other things we could include with this GPX file if we wanted.  GPX allows for vendor extensions and the like, however, we are interested in a widely compatible output, so keep it simple.  Read the "GPX schema":http://www.topografix.com/GPX/1/1/gpx.xsd for more information:
 
@@ -101,31 +101,31 @@ Now, on to the final bit.  We want to keep our controls simple, and our routes p
 
 We want to be able to do something as simple as append a .gpx to the end of a path to get the outputted XML file.  Rails and respond_to make this super simple.  We just add 'gpx' to our respond_to call and the block associated with it will be executed.
 
-<filter:code lang="ruby_on_rails" theme="blackboard">
-  def show
-    @asset = Route.find(params[:id])
-    
-    respond_to do |wants|
-      wants.html do
-        @user = @asset.user if @asset.group_membership
-        @trips = @asset.trips
-      end 
-      wants.json { render :text => @asset.data_full }
-      wants.gpx do  
-        worker = MiddleMan.new_worker(:worker => :xml_processor_worker)
-        xml = MiddleMan.worker(:xml_processor_worker).generate(:arg => {:type => :route, :id => params[:id]})
-        response.headers['Content-Disposition'] = 'attachment; filename=' + @asset.name.gsub(/[\\\/\s]/, '_') + '.gpx'
-        render :xml => xml 
-      end 
+<pre data-language="ruby" >
+def show
+  @asset = Route.find(params[:id])
+  
+  respond_to do |wants|
+    wants.html do
+      @user = @asset.user if @asset.group_membership
+      @trips = @asset.trips
+    end 
+    wants.json { render :text => @asset.data_full }
+    wants.gpx do  
+      worker = MiddleMan.new_worker(:worker => :xml_processor_worker)
+      xml = MiddleMan.worker(:xml_processor_worker).generate(:arg => {:type => :route, :id => params[:id]})
+      response.headers['Content-Disposition'] = 'attachment; filename=' + @asset.name.gsub(/[\\\/\s]/, '_') + '.gpx'
+      render :xml => xml 
     end 
   end 
-</filter:code>
+end 
+</pre>
 
 There is one catch: gpx is not a common MIME type, and must be added to environment.rb in order to be recognized.  This is simple enough, just add the following line to environment.rb
 
-<filter:code lang="ruby" theme="blackboard">
+<pre data-language="ruby" >
 Mime::Type.register "text/xml", :gpx
-</filter:code>
+</pre>
 
 One last note!  Having a MIME type of XML will cause most browsers to show the file inline.  However, we want a user to be prompted to save the file.  This is a simple hack, and can be seen in the above code snippet where I am mucking with the response headers.  We tell the header that the content is an attachment, and give it a filename.  The regex is there to turn '/', '\' and spaces into underscores, to be friendly across platforms.
 

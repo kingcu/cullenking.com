@@ -1,90 +1,128 @@
 <!DOCTYPE HTML>
-
-<html>
+<html lang='en' xml:lang='en' xmlns='http://www.w3.org/1999/xhtml'>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <meta name="Cullen King" content="blawg blawg blawg" />
-    <title>Converting DEM from GeoTIFF to GridFloat with C Source</title>
+    <meta name="description" content="Miscellaneous programming tips, as well as thoughts on business and fitness." />
+    <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/combo?3.3.0/build/cssfonts/fonts-min.css&3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssgrids/grids-min.css&3.3.0/build/cssbase/base-min.css" />
+    <link href="/stylesheets/rainbow.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="/stylesheets/main.css" rel="stylesheet" type="text/css" media="screen" />
+    <title>Cullen's Blog...</title>
   </head>
   <body>
-    <header>
+    <div id="header">
       <h1><a href="/">Home</a></h1>
-    </header>
-    <section>
-      <div class="content">
-  <div id="post">
-    <h1></h1>
+    </div>
+    <div id="content" class="yui3-g">
+      <div id="posts" class="yui3-u-19-24">
+        <div class="post">
+  <h2 class="posttitle">
+    <a href="/blog/2010/06/02/converting-dems-from-geotiff-to-gridfloat">Converting DEM from GeoTIFF to GridFloat with C Source</a>
+  </h2>
+  <em class="postdate">Posted on 02 June 2010.</em>
+  <div class="postbody">
     <p>I just recently acquired a patched and improved <span class="caps">SRTM</span> elevation dataset for the entire world.  This will allow our route planner to use only our own elevation service rather than relying on the <span class="caps">USGS</span> and geonames for elevations outside the United States.  However, the format choices for the <span class="caps">DEM</span> was either GeoTIFF or an <span class="caps">ASCII</span> grid.  Since the <span class="caps">ASCII</span> grid of elevations just means the elevations are literally space delimited in a plain <span class="caps">ASCII</span> file, I decided that was a huge waste of space.</p>
 <p>However, after spending a bit of time learning about <span class="caps">GDAL</span> then writing a program in C (made a ruby module), I found out that accessing individual pixels in a GeoTIFF using <span class="caps">GDAL</span> is slowwww.  So slow, that it was unusable for our application.  After poking around and thinking, I decided to drop the GeoTIFF format and to convert the files to a good old GridFloat.  The GridFloat format is very simple: it&#8217;s a binary file where each 32 bits is an elevation.  You can easily calculate where in the binary file to access your elevation by knowing the latitude and longitude of the corner, and that the binary file is a flattened 2D array of elevation data in row-major order.  Meaning, the first X bits of the file are row1 of the grid, followed by row2, etc etc.</p>
 <p>My first conversion program was naive, and it read the <span class="caps">TIFF</span> pixel by pixel, writing each pixel to the output file individually.  As expected, this was incredibly slow considering each <span class="caps">TIFF</span> was a 6001&#215;6001 grid of pixels.  Converting a single 69mb <span class="caps">TIFF</span> took 3-5 minutes.</p>
 <p>My second iteration of the program read row by row, writing each row to the output file, and was considerably faster, clocking in at only 3 seconds per file.  However, I realized that each read then write was sending the disk head all over the platter, and was definitely inefficient.  So, I sacrificed some <span class="caps">RAM</span> and just read the entire <span class="caps">TIFF</span> into an array, then wrote that array to disk using a single fwrite() call.  This ended up being incredibly fast, taking only 1 second to read a 69 meg <span class="caps">TIFF</span> and writeout a 138 meg GridFloat file.</p>
 <p>Here is the final conversion code:</p>
-<filter:code lang="c" theme="blackboard">
-<p>#include <stdlib.h><br />
-#include <math.h><br />
-#include &#8220;gdal.h&#8221;</p>
-<p>int main(int argc, char <strong>argv[]) {<br />
-        char *filename = argv<sup class="footnote" id="fnr1"><a href="#fn1">1</a></sup>;<br />
-        char *outfilename = argv<sup class="footnote" id="fnr2"><a href="#fn2">2</a></sup>;<br />
-        char *headerfilename = argv<sup class="footnote" id="fnr3"><a href="#fn3">3</a></sup>;<br />
-        char str<sup class="footnote" id="fnr128"><a href="#fn128">128</a></sup>;<br />
-        GDALDatasetH dataset;<br />
-        GDALRasterBandH *band;<br />
-        int xSize;<br />
-        int ySize;<br />
-        int i, j;<br />
-        double geoTransform<sup class="footnote" id="fnr9"><a href="#fn9">9</a></sup>;<br />
-        int sizee = sizeof(float);<br />
-        int count = 6001</strong>6001;<br />
-        float <strong>outt = malloc(sizeof(float)</strong>count);<br />
-        float *window;<br />
-        <span class="caps">FILE</span> *outfp;</p>
-GDALAllRegister(); //initialize <span class="caps">GDAL</span>
-dataset = GDALOpen(filename, GA_ReadOnly);
-if(dataset == <span class="caps">NULL</span>) {
-fprintf(stderr, &#8220;Couldn&#8217;t open geotiff file %s\n&#8221;, filename);
-return 0;
+<pre data-language="c">
+#include &lt;stdlib.h&gt;
+#include &lt;math.h&gt;
+#include "gdal.h"
+
+int main(int argc, char *argv[]) {
+        char *filename = argv[1];
+        char *outfilename = argv[2];
+        char *headerfilename = argv[3];
+        char str[128];
+        GDALDatasetH dataset;
+        GDALRasterBandH *band;
+        int xSize;
+        int ySize;
+        int i, j;
+        double geoTransform[9];
+        int sizee = sizeof(float);
+        int count = 6001*6001;
+        float *outt = malloc(sizeof(float)*count);
+        float *window;
+        FILE *outfp;
+
+        GDALAllRegister(); //initialize GDAL
+
+        dataset = GDALOpen(filename, GA_ReadOnly);
+        if(dataset == NULL) {
+                fprintf(stderr, "Couldn't open geotiff file %s\n", filename);
+                return 0;
+        }   
+
+        band = GDALGetRasterBand(dataset, 1); 
+
+        xSize = GDALGetRasterXSize(band);
+        ySize = GDALGetRasterYSize(band);
+        window = (float *) CPLMalloc(sizeof(float)*xSize);
+
+        GDALGetGeoTransform(dataset, geoTransform);
+        if((outfp = fopen(outfilename, "w")) == NULL) {
+                printf("shit, something went wrong opening file");
+                fflush(stdout);
+                exit(1);
+        }   
+
+        /*  
+         * If I naively just loop through each pixel and write that pixel, it takes so long to actually
+         * perform the conversion.  So we loop through row then order them in-memory
+         * in an array, then write that array in a single fwrite call.  This is orders of
+         * magnitude faster!  1 second vs 3-5 minutes per 69 meg in -&gt; 138 meg out file.
+         */
+        for(i = 0; i &lt; xSize; i++) {
+                GDALRasterIO(band, GF_Read, 0, i, xSize, 1, window, ySize, 1, GDT_Float32, 0, 0); 
+                for(j = 0; j &lt; ySize; j++) {
+                        outt[j + i*xSize] = window[j];
+                }
+        }   
+        fwrite(outt, sizee, count, outfp);
+        fclose(outfp);
+
+        outfp = fopen(headerfilename, "w");
+        sprintf(str, "ncols         10812\nnrows         10812\n");
+        fputs(str, outfp);
+        sprintf(str, "xllcorner     %f\nyllcorner     %f\n", geoTransform[0], geoTransform[3] - 5.0008333333333);
+        fputs(str, outfp);
+        sprintf(str, "cellsize      0.0008333333333\nNODATA_value  -32768\nbyteorder     LSBFIRST\n");
+        fputs(str, outfp);
+        fclose(outfp);
+
+        exit(0);
 }
-band = GDALGetRasterBand(dataset, 1);
-xSize = GDALGetRasterXSize(band);
-ySize = GDALGetRasterYSize(band);
-window = (float <strong>) CPLMalloc(sizeof(float)</strong>xSize);
-GDALGetGeoTransform(dataset, geoTransform);
-if((outfp = fopen(outfilename, &#8220;w&#8221;)) == <span class="caps">NULL</span>) {
-printf(&#8220;shit, something went wrong opening file&#8221;);
-fflush(stdout);
-exit(1);
-}
-/*
-<ul>
-	<li>If I naively just loop through each pixel and write that pixel, it takes so long to actually</li>
-	<li>perform the conversion.  So we loop through row then order them in-memory</li>
-	<li>in an array, then write that array in a single fwrite call.  This is orders of</li>
-	<li>magnitude faster!  1 second vs 3-5 minutes per 69 meg in &#8594; 138 meg out file.<br />
-         <strong>/<br />
-        for(i = 0; i &lt; xSize; i++) {<br />
-                GDALRasterIO(band, GF_Read, 0, i, xSize, 1, window, ySize, 1, GDT_Float32, 0, 0); <br />
-                for(j = 0; j &lt; ySize; j++) {<br />
-                        outt[j + i</strong>xSize] = window[j];<br />
-                }<br />
-        }   <br />
-        fwrite(outt, sizee, count, outfp);<br />
-        fclose(outfp);</li>
-</ul>
-outfp = fopen(headerfilename, &#8220;w&#8221;);
-sprintf(str, &#8220;ncols         10812\nnrows         10812\n&#8221;);
-fputs(str, outfp);
-sprintf(str, &#8220;xllcorner     %f\nyllcorner     %f\n&#8221;, geoTransform<sup class="footnote" id="fnr0"><a href="#fn0">0</a></sup>, geoTransform<sup class="footnote" id="fnr3"><a href="#fn3">3</a></sup> &#8211; 5.0008333333333);
-fputs(str, outfp);
-sprintf(str, &#8220;cellsize      0.0008333333333\nNODATA_value  -32768\nbyteorder     <span class="caps">LSBFIRST</span>\n&#8221;);
-fputs(str, outfp);
-fclose(outfp);
-exit(0);
-<p>}</p>
-</filter:code>
+</pre>
   </div>
 </div>
 
-    </section>
+      </div>
+
+      <div id="sidebar" class="yui3-u-5-24">
+        <h3>Friends!</h3>
+        <ul>
+          <li><a href="http://ridewithgps.com">Best Bike Website</a></li>
+          <li><a href="http://blog.ridewithgps.com">Ride With GPS Blog</a></li>
+          <li><a href="http://sonicboomracing.com">Sonic Boom Racing</a></li>
+          <li><a href="http://bikeportland.org">Bike Portland</a></li>
+          <li><a href="http://www.upperechelonfitness.com">Upper Echelon Fitness</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <script src="/javascripts/rainbow-custom.min.js"></script>
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-7831480-1']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
   </body>
 </html>

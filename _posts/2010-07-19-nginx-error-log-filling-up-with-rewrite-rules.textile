@@ -13,11 +13,15 @@ So, if you are trying to turn off rewrite rule logging in your nginx error log, 
 
 First, add
 
+<pre>
   *rewrite_log off;*
+</pre>
 
 to your main configuration.  Then, make sure each error_log declaration has a level other than critical.  I picked 'warn', and we'll see if this fills up quick.  My guess is for heavy hit sites, 'error' is the correct value.  Your error log line should look like:
 
+<pre>
   *error_log /var/log/nginx.ridewithgps.com.error.log warn;*
+</pre>
 
 With those changes you should have a much smaller error log footprint, and grepping through your logs won't grind on your disks too much.
 

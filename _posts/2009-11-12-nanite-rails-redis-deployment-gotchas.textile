@@ -17,9 +17,9 @@ Here is a "direct link":http://github.com/ezmobius/nanite/issues#issue/7 to the 
 
 To use Redis with Nanite, simply include a configuration option when starting a mapper:
 
-<filter:code lang="ruby" theme="blackboard">
+<pre data-language="ruby" theme="blackboard">
 Nanite.start_mapper(:host => 'localhost', ...., :redis => "REDIS_HOST:REDIS_PORT")
-</filter:code>
+</pre>
 
 If you don't want to use Redis, the problem can be worked around with some massaging of the Nanite code.  You can checkout how this is done by visiting "nofxx's fork":http://github.com/nofxx/nanite/commit/7804058cf297088f063cf5d1d2695c8b15ab71a0 of Nanite on GitHub and seeing what he did.
 
@@ -29,21 +29,21 @@ RabbitMQ versions 1.6.0 and greated now have a configuration option called "pref
 
 Now this is where we have a problem!!!  Nanite offers a prefetch configuration option, but it is only on the mapper!  The problem we need to solve is the queues corresponding to the agents, so the prefetch configuration option needs to be set for agent queues, not the mapper queue (which can handle large numbe of messages, since they are just acks, pings and responses from agents).  This is where we need to dive into the Nanite source and change some stuff.  The less adventerous can just pull my "Nanite fork":http://github.com/kingcu/nanite on GitHub until these changes are accepted upstream, the more adventerous can look at how the prefetch option is passed to the mapper, and repeat it on the agent.  You can see below my modified setup_queue() method, with the first three lines added.
 
-<filter:code lang="ruby" theme="blackboard">
-    def setup_queue
-      if amq.respond_to?(:prefetch) && @options.has_key?(:prefetch)
-        amq.prefetch(@options[:prefetch])
-      end
-      amq.queue(identity, :durable => true).subscribe(:ack => true) do |info, msg|
-        begin
-          info.ack
-          receive(serializer.load(msg))
-        rescue Exception => e
-          Nanite::Log.error("RECV #{e.message}")
-        end
-      end
+<pre data-language="ruby" theme="blackboard">
+def setup_queue
+  if amq.respond_to?(:prefetch) && @options.has_key?(:prefetch)
+    amq.prefetch(@options[:prefetch])
+  end
+  amq.queue(identity, :durable => true).subscribe(:ack => true) do |info, msg|
+    begin
+      info.ack
+      receive(serializer.load(msg))
+    rescue Exception => e
+      Nanite::Log.error("RECV #{e.message}")
     end
-</filter:code>
+  end
+end
+</pre>
 
 Finally, I was having problems with intermittently losing jobs spawned from my web interface, which is deployed on passenger.  After a huge amount of struggling, I finally conceded that eventmachine and passenger are not compatible in passengers smart spawning mode.  So, I set passengers spawning mode to conservative and enjoyed a much more robust deployment!
 

@@ -9,24 +9,21 @@ categories:
 
 I just recovered from a scary situation in which I lost a whole commit to git by accidentally working out of the "no branch" branch in git.  I would have only lost around 2 hours of work, however, two hours is a decent amount when you are already pressed for time!  After about three minutes of googling I came across a link which saved me.  The gist of it is below:
 
-<filter:code lang="xml" theme="blackboard">
-  kingcu@kingcu-desktop:~/ridewithgps$ git reflog show
+<pre data-language="xml">
+kingcu@kingcu-desktop:~/ridewithgps$ git reflog show
 
-  b709fac... HEAD@{3}: pull origin new_garmin_sync: Merge made by recursive.
-  b6e1616... HEAD@{4}: commit: intermediate checkin for Cam. UI is wired up to send to server, now just needs some massaging for generating extra info for a trip like associated route, etc
-
-</filter:code>
+b709fac... HEAD@{3}: pull origin new_garmin_sync: Merge made by recursive.
+b6e1616... HEAD@{4}: commit: intermediate checkin for Cam. UI is wired up to send to server, now just needs some massaging for generating extra info for a trip like associated route, etc
+</pre>
 
 The commit that was not in any branch is the 'intermediate checkin' commit.  Now that we have a part of the SHA hash, we can use git log to show the commit, get the full hash and then merge it into the branch we want:
 
-<filter:code lang="xml" theme="blackboard">
-  
-  kingcu@kingcu-desktop:~/ridewithgps$ git log b6e1616
-  .....
-  .....
-  kingcu@kingcu-desktop:~/ridewithgps$ git merge b6e16166608b5be148b5dc0a721af3e8d15de282
-
-</filter:code>
+<pre data-language="xml">
+kingcu@kingcu-desktop:~/ridewithgps$ git log b6e1616
+.....
+.....
+kingcu@kingcu-desktop:~/ridewithgps$ git merge b6e16166608b5be148b5dc0a721af3e8d15de282
+</pre>
 
 
 Here is the blog which helped me arrive at this solution:

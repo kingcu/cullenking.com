@@ -11,15 +11,14 @@ We had been having some serious issues running Nanite under Phusion Passenger, n
 
 The problem:  messages saying eventmachine is not initialized:
 
-<filter:code theme="blackboard">
+<pre >
 RuntimeError (eventmachine not initialized:
 evma_send_data_to_connection):
   eventmachine (0.12.8) lib/em/connection.rb:216:in `send_data'
   eventmachine (0.12.8) lib/em/connection.rb:216:in `send_data' 
-</filter:code>
+</pre>
 
 
 After some digging around, I found the issue on the nanite github page:  "ezmobius nanite page":http://github.com/ezmobius/nanite/issues#issue/8 The solution is easy, upgrade amqp to 0.6.5 (or greater, 0.6.5 is latest at time of writing).
 
 Voila!  No more lost jobs, things appear to be stable.
-

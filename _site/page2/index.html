@@ -1,0 +1,477 @@
+<!DOCTYPE HTML>
+<html lang='en' xml:lang='en' xmlns='http://www.w3.org/1999/xhtml'>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="description" content="Miscellaneous programming tips, as well as thoughts on business and fitness." />
+    <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/combo?3.3.0/build/cssfonts/fonts-min.css&3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssgrids/grids-min.css&3.3.0/build/cssbase/base-min.css" />
+    <link href="/stylesheets/rainbow.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="/stylesheets/main.css" rel="stylesheet" type="text/css" media="screen" />
+    <title>Cullen's Blog...</title>
+  </head>
+  <body>
+    <div id="header">
+      <h1><a href="/">Home</a></h1>
+    </div>
+    <div id="content" class="yui3-g">
+      <div id="posts" class="yui3-u-19-24">
+        
+  <div class="post">
+  <h2 class="posttitle">
+    <a href="/blog/2010/03/01/recovering-a-lost-commit-in-git">Recovering a lost commit in GIT</a>
+  </h2>
+  <em class="postdate">Posted on 01 March 2010.</em>
+  <div class="postbody">
+    <p>I just recovered from a scary situation in which I lost a whole commit to git by accidentally working out of the &#8220;no branch&#8221; branch in git.  I would have only lost around 2 hours of work, however, two hours is a decent amount when you are already pressed for time!  After about three minutes of googling I came across a link which saved me.  The gist of it is below:</p>
+<pre data-language="xml">
+kingcu@kingcu-desktop:~/ridewithgps$ git reflog show
+
+b709fac... HEAD@{3}: pull origin new_garmin_sync: Merge made by recursive.
+b6e1616... HEAD@{4}: commit: intermediate checkin for Cam. UI is wired up to send to server, now just needs some massaging for generating extra info for a trip like associated route, etc
+</pre>
+<p>The commit that was not in any branch is the &#8216;intermediate checkin&#8217; commit.  Now that we have a part of the <span class="caps">SHA</span> hash, we can use git log to show the commit, get the full hash and then merge it into the branch we want:</p>
+<pre data-language="xml">
+kingcu@kingcu-desktop:~/ridewithgps$ git log b6e1616
+.....
+.....
+kingcu@kingcu-desktop:~/ridewithgps$ git merge b6e16166608b5be148b5dc0a721af3e8d15de282
+</pre>
+<p>Here is the blog which helped me arrive at this solution:</p>
+<p><a href="http://techblog.ironfroggy.com/2007/12/how-to-recover-lost-git-branches.html">http://techblog.ironfroggy.com/2007/12/how-to-recover-lost-git-branches.html</a></p>
+  </div>
+</div>
+
+
+  <div class="post">
+  <h2 class="posttitle">
+    <a href="/blog/2010/02/26/don-t-change-the-containing-div-of-a-flash-movie">Don't change the containing div of a flash movie!</a>
+  </h2>
+  <em class="postdate">Posted on 26 February 2010.</em>
+  <div class="postbody">
+    <p>I just tracked down a bug that was affecting some versions of Firefox on Windows, which is usually not a combination to worry about or test for!</p>
+<p>To combat weird z-index issues between flash and <span class="caps">HTML</span> under Linux, we have been moving the flash movie off screen and changing some styles, then moving it back when the overlay is closed.  One of the styles being changes was the overflow property of the <span class="caps">DIV</span> containing the flash movie.  This style change was causing the flash movie to be completely reloaded, which broke all ExternalInterface callbacks setup on the flash movie.</p>
+<p>Removing the offending style changes solved the problem.  What a pain to track down!</p>
+  </div>
+</div>
+
+
+  <div class="post">
+  <h2 class="posttitle">
+    <a href="/blog/2010/02/04/garmin-communicator-and-fit-devices">Garmin Communicator and FIT devices</a>
+  </h2>
+  <em class="postdate">Posted on 04 February 2010.</em>
+  <div class="postbody">
+    <p>This week I attempted to get our Garmin Communicator implementation for <a href="http://ridewithgps.com">http://ridewithgps.com</a> to support Garmin&#8217;s new line of cycling computers, the Edge 500.  The 500 uses a new file format, and a new protocol to get files off the device, that is definitely a step backwards for third party developers.  After some amount of wrestling attempting to get the 500 to play nicely with Communicator, I realized that Garmin must have disabled third party sites from using Communicator to sync with new <span class="caps">FIT</span> devices.</p>
+<p>We know the plugin and associated javascript are capable of it, since both are the same on Garmin&#8217;s own site, so the only thing that must be different is only their site is permitted to use the methods needed to get data off the device.  I am not quite sure the motivation, perhaps they are doing this to make sure everything goes smooth and all errors get fixed before releasing the functionality to the rest of the developers.</p>
+<p>So, for anyone working with an Edge 500 and Garmin Communicator, the exception being thrown by the plugin when executing the method getBinaryFile() which states &#8216;Web site is not privileged&#8217; is just letting you know you are locked out until they release an update.  There is no current expected release date for this functionality.</p>
+<p>From Garmin Connect&#8217;s Twitter account:</p>
+<p>&#8220;@cullenking Looking into opening it up. No time line as of yet.&#8221;</p>
+<p>And, from their forum:</p>
+<p><a href="https://forums.garmin.com/showthread.php?t=5692">https://forums.garmin.com/showthread.php?t=5692</a></p>
+  </div>
+</div>
+
+
+  <div class="post">
+  <h2 class="posttitle">
+    <a href="/blog/2009/12/17/database-optimizations">Database Optimizations</a>
+  </h2>
+  <em class="postdate">Posted on 17 December 2009.</em>
+  <div class="postbody">
+    <p>When we first started working on ridewithgps, we made the decision to store all route information as <span class="caps">JSON</span> text inside the database.  The downside should be pretty obvious, in that a route or trip can be a fairly large string; I have some trips saved from my <span class="caps">GPS</span> unit that are 1.5 megs of xml and around 600kb of <span class="caps">JSON</span>.  To cope with the performance hit when using activerecord to pull routes/trips from the database, we used a plugin called attribute_lazy that delayed loading of the fields until they are explicitly queried for.  However, this adds an additional layer of metaprogramming complexity, and turned out to be a pain to work with in certain situations.</p>
+<p>The final straw was an ever-growing database size, which resulted in database dumps being 3GB with our current ~22k routes/trips.  Considering we need offsite backups as well as an easy way to bring the dataset in locally for development purposes, I desperately needed to use rsync for incremental and efficient transfer of only the modified and/or new routes!</p>
+<p>There was one thing to think of when deciding on this solution: filesystems use a single inode per stored file, and you can actually run out of inodes before you run out of disk space, depending on your inode size and the size of the files you are storing.  Since each route and trip will take about 4 separate files (I store reduced versions of the route for low resolution maps which need fast load times), I did some calculations based on having around 120 million free inodes.  Without considering other files being uploaded, such as images, I have around 30 million routes/trips I can store without running into the inode limit on my current 1 terrabyte RAID10 array.  If we don&#8217;t have the money to expand storage options with another couple million routes/photos, then we are doing something wrong.</p>
+<p>This task was fairly straight forward with one exception: storing a file corresponding to a particular trip or route requires the ID of that trip or route in the database.  This ID is not available until after the database entry is saved, so we have to persist the <span class="caps">JSON</span> until we have that ID available.  The canonical rails way of doing this is of course using the after_save method.  I keep the <span class="caps">JSON</span> around by shoving it into an instance variable on the particular route/trip instance we are saving, then clearing that variable when the file has been written.</p>
+<pre data-language="ruby" >
+def data_full= json
+  if self.id == nil
+    @data_full = json
+    return
+  end
+
+  if json
+    File.open(df_path, 'w+') { |file| file &lt;&lt; data.to_json }
+  elsif File.exists?(df_path)
+    File.delete(df_path)
+  end
+  @data_full = nil
+end
+</pre>
+<p>A simplified version of what we are using is above, which is loaded into routes and trips using a module.  Basically, we first check if the ID exisits and if not, populate the instance variable with our text.  If it does, we open the flatfile in truncate mode (overwrite if it already exists).  If a nil value is passed in, we delete the file if the file exists.</p>
+<p>The after save method for routes and trips is trivial as well, since we just call the assignment again.  On this second call, the assignment falls past the conditional check for a nil id, and the file write occurs.</p>
+<pre data-language="ruby" >
+def after_save
+  if @data_full
+    self.data_full = @data_full
+  end
+  #some boring stuff also happens...
+end
+</pre>
+<p>The final bit of the puzzle is removing files if a route/trip is destroyed, which is pretty trivial.  This will greatly improve throughput on heavy loads, which will be welcomed when we get a huge influx of users next riding season.  The best part? our 3GB database dump was now whittled down to a mere 26MB!  We can easily hit 100k users and 500k routes/trips and not break the 1GB mark, which means database scaling will only be for performance rather than space considerations.  The directory structure containing the flatfiles is currently at 2.6 gigs.  With rsync, backups are now speedy and efficient.</p>
+  </div>
+</div>
+
+
+  <div class="post">
+  <h2 class="posttitle">
+    <a href="/blog/2009/11/12/nanite-rails-redis-deployment-gotchas">Nanite, Rails, Redis deployment gotchas</a>
+  </h2>
+  <em class="postdate">Posted on 12 November 2009.</em>
+  <div class="postbody">
+    <p>One of the problems (joys?) with new and exciting open source software is the relative scarcity of information available.  Compound this with powerful/complex software and you get  a real recipe for learning.  This has been the case with getting a reliable Nanite deployment for <a href="http://ridewithgps.com">http://ridewithgps.com.</a>  Nanite is an incredibly powerful distributed background worker written in Ruby, which leverages the <span class="caps">AMQP</span> messaging protocol and the RabbitMQ server for fast, efficient and safe job creation and passing.  I am not going to bother detailing what Nanite is, since that information is readily available on the GitHub page, but rather am going to talk about a few gotchas.</p>
+<p>Nanite is fairly simple to get running, however there are a few caveats.  If you plan on using it with a Rails application, you have some choices: you can either do a few things by hand (not too bad) or you can use the nanite-rails plugin.  I started with the plugin, but decided less is better and stripped it out, and am now just running Nanite plain.  The one thing I did keep was the nanite.rb initializer file for getting started with various servers.  Since I test locally on thin and deploy on Passenger, using the nanite-rails provided script worked well.</p>
+<p>The first issue I noticed, is that multiple agents were receiving the same message (job) from my rails mapper(s) when the job was pushed from within an agent itself, rather from code in the mappers eventmachine loop.  Simply put: all agents were receiving the same job when the job was sent from within an agent.  It turns out that this is due to each mapper having no idea what other mappers are doing.  This is possibly considered a &#8220;feature&#8221; and may or may not be addressed by the Nanite developers.  The reason they are non-committal is due to the fact the problem is solved when you couple Nanite with Redis.  If you don&#8217;t know what Redis is, go ahead and readup, but basically it is a key/value storage similar to memcached, except it can persist data to disk and you can store simple data structures within, rather than plain strings.  In any event, Nanite can use Redis to store state, which is central to all mappers.  This way, every mapper knows about every other mapper, and duplicate requests are not assigned to agents.</p>
+<p>Here is a <a href="http://github.com/ezmobius/nanite/issues#issue/7">direct link</a> to the issue.</p>
+<p>To use Redis with Nanite, simply include a configuration option when starting a mapper:</p>
+<pre data-language="ruby" theme="blackboard">
+Nanite.start_mapper(:host =&gt; 'localhost', ...., :redis =&gt; "REDIS_HOST:REDIS_PORT")
+</pre>
+<p>If you don&#8217;t want to use Redis, the problem can be worked around with some massaging of the Nanite code.  You can checkout how this is done by visiting <a href="http://github.com/nofxx/nanite/commit/7804058cf297088f063cf5d1d2695c8b15ab71a0">nofxx&#8217;s fork</a> of Nanite on GitHub and seeing what he did.</p>
+<p>The next problem I encountered was my agents getting swamped with messages, timing out and freezing.  The reason this happens, is that RabbitMQ stuffs data down a socket and keeps it full.  The moment that socket is emptied, RabbitMQ shoves more down the socket.  However on the receiving end the <span class="caps">AMQP</span> client utilizes EventMachine, which has a reactor loop that visits each socket within the loop in turn.  It keeps a connection open to the socket corresponding to the queue it is subscribed to (queue for that agent), and blocks while that socket is full, meaning it is unable to move on to the next socket/queue.  So, RabbitMQ keeps the socket full and EventMachine keeps emptying the socket as long as it is full, and we get a recipe for a headache.</p>
+<p>RabbitMQ versions 1.6.0 and greated now have a configuration option called &#8220;prefetch&#8221;.  This option limits the number of messages to stuff into that socket at any one time.  So, where you would have 100+ messages in a socket by default, always causing that socket to be full, you can now tell RabbitMQ to give you one message at a time in the socket.  This allows EventMachine to keep up with all the sockets.  If you have longer running tasks (multiple seconds), setting prefetch to 1 will keep everything happy.  If you can slam through tons of messages a second, larger prefetch values will avoid extra looping and can help speed things up.</p>
+<p>Now this is where we have a problem!!!  Nanite offers a prefetch configuration option, but it is only on the mapper!  The problem we need to solve is the queues corresponding to the agents, so the prefetch configuration option needs to be set for agent queues, not the mapper queue (which can handle large numbe of messages, since they are just acks, pings and responses from agents).  This is where we need to dive into the Nanite source and change some stuff.  The less adventerous can just pull my <a href="http://github.com/kingcu/nanite">Nanite fork</a> on GitHub until these changes are accepted upstream, the more adventerous can look at how the prefetch option is passed to the mapper, and repeat it on the agent.  You can see below my modified setup_queue() method, with the first three lines added.</p>
+<pre data-language="ruby" theme="blackboard">
+def setup_queue
+  if amq.respond_to?(:prefetch) &amp;&amp; @options.has_key?(:prefetch)
+    amq.prefetch(@options[:prefetch])
+  end
+  amq.queue(identity, :durable =&gt; true).subscribe(:ack =&gt; true) do |info, msg|
+    begin
+      info.ack
+      receive(serializer.load(msg))
+    rescue Exception =&gt; e
+      Nanite::Log.error("RECV #{e.message}")
+    end
+  end
+end
+</pre>
+<p>Finally, I was having problems with intermittently losing jobs spawned from my web interface, which is deployed on passenger.  After a huge amount of struggling, I finally conceded that eventmachine and passenger are not compatible in passengers smart spawning mode.  So, I set passengers spawning mode to conservative and enjoyed a much more robust deployment!</p>
+<p>I am sure some more info will follow, but this should be enough to get you going.</p>
+  </div>
+</div>
+
+
+  <div class="post">
+  <h2 class="posttitle">
+    <a href="/blog/2009/11/10/nanite-under-passenger-issues">Nanite under Passenger issues</a>
+  </h2>
+  <em class="postdate">Posted on 10 November 2009.</em>
+  <div class="postbody">
+    <p>We had been having some serious issues running Nanite under Phusion Passenger, namely we kept losing jobs, and all subsequent jobs did not make it to any agent.  It turns out this is an issue with the amqp gem!</p>
+<p>The problem:  messages saying eventmachine is not initialized:</p>
+<pre >
+RuntimeError (eventmachine not initialized:
+evma_send_data_to_connection):
+  eventmachine (0.12.8) lib/em/connection.rb:216:in `send_data'
+  eventmachine (0.12.8) lib/em/connection.rb:216:in `send_data' 
+</pre>
+<p>After some digging around, I found the issue on the nanite github page:  <a href="http://github.com/ezmobius/nanite/issues#issue/8">ezmobius nanite page</a> The solution is easy, upgrade amqp to 0.6.5 (or greater, 0.6.5 is latest at time of writing).</p>
+<p>Voila!  No more lost jobs, things appear to be stable.</p>
+  </div>
+</div>
+
+
+  <div class="post">
+  <h2 class="posttitle">
+    <a href="/blog/2009/07/02/make-your-site-friendly-to-link-to-on-facebook">Make your site friendly to link to on Facebook</a>
+  </h2>
+  <em class="postdate">Posted on 02 July 2009.</em>
+  <div class="postbody">
+    <p>Here is a quick but helpful tidbit for any site.  You can direct Facebook to a particular preview thumbnail to show when a user links to your page on Facebook.  If you don&#8217;t specify a thumbnail, Facebook will give a user a few options to choose from.  Where this comes in handy is on pages that don&#8217;t need that thumbnail visible, but having that thumbnail available as a preview is valuable.</p>
+<p>For example, when viewing a route or trip on <a href="http://ridewithgps.com">http://ridewithgps.com</a> there is already a large interactive map of the route for a user to play with.  Placing a thumbnail of that route somewhere on the page becomes redundant on an already cluttered layout.  However, when linking to the route from Facebook we want users to see a small thumbnail preview of the route.  Simply add a link in your head tag like so:</p>
+<filter:code lang="html" theme="blackboard">
+<link href='http://ridewithgps.com/routes/2602/thumb.gif' rel='image_src' />
+</filter:code>
+<p>This will produce a neat looking preview that looks something like this:</p>
+<p><img src="/images/facebookLinkExample.jpg" alt="" /></p>
+  </div>
+</div>
+
+
+  <div class="post">
+  <h2 class="posttitle">
+    <a href="/blog/2009/06/12/using-gaussian-and-sinc-filters-on-elevation-data">Using Gaussian and sinc filters on elevation data</a>
+  </h2>
+  <em class="postdate">Posted on 12 June 2009.</em>
+  <div class="postbody">
+    <p>To begin, let me state that I am not an expert, or even that knowledgeable about signal processing.  My math skills are just enough to understand the concepts involved in using and selecting a particular filter.  This is merely a collection of a couple days worth of reading and playing around.  Much of the knowledge I absorbed came from the Wikipedia articles on the subjects, conversations with my friend Joe (a good friend and <span class="caps">PHD</span> student in AI at Oregon State) and one helpful EE professor at Oregon State.  Living in a college town has benefits: I knocked on the doors of several professors that specialize in digital signal processing, and found a friendly one with 10 minutes of free time :)</p>
+<p>This exploration of filters is an attempt to solve an accuracy problem when modeling elevation data for bicycle rides on <a href="http://ridewithgps.com">http://ridewithgps.com</a> &#8211; there are two scenarios for elevation data: before a user ever goes on a bike ride, they can plot out the route on a Google map and an elevation profile is generated from the <span class="caps">USGS</span> provided national elevation dataset.  The second scenario occurs when a user comes back from the ride they just took, and uploads their logged data from a <span class="caps">GPS</span> unit.  This log file includes elevation data, which in the case of the Garmin 305, is provided by a fairly accurate barometric sensor based altimeter.  The two datasets are inaccurate in separate ways.  The <span class="caps">USGS</span> data is highly accurate for the points in the dataset, however, those points are spaced 10 meters apart.  As a result, asking for an elevation point on some road that rides along a steep hillside may give me a point that is 20 meters above/below the actual requested point.  Over the course of plotting a longer route, we can get off by 2000 feet in some cases!  There are ways to improve this, and I am exploring interpolation when querying the elevation dataset DEMs, but that is another topic for another day.</p>
+<p>The logged elevation data has a different problem: the Garmin saves the raw data, which has a some variation up and down due to sensor accuracy.  As a result, if you ride along a perfectly flat road for 50 miles (0 elevation gain and loss), the logged data will have jitter up and down of 0.5 to 1 meter or so.  When calculating the elevation gain and loss of this flat ride, we can come up with upwards of 1000 feet of gain and loss!  So, in order to accurately calculate a ride or planned rides elevation gain and loss, we must smooth out these jitters.</p>
+<p><img src="/images/rtr_comparison.png" alt="" /></p>
+<p>Above is an example of two datasets with a filter applied to each.  Keep in mind this is a zoomed in section of the dataset, and as a result the jaggedness is exacerbated.  The green line is the raw <span class="caps">USGS</span> data, and you can see how jittery it is.  The red line running through it is a sinc filtered dataset, with a max window size of 21 (can be smaller dynamically), and a frequency of 0.04.  The jagged purple line is raw elevation data taken from my Garmin 305 log.  The altimeter has a step size of .4805 meters, and an accuracy of something like +/- 1 meter.  As you can see, it is a much cleaner dataset when compared to the <span class="caps">USGS</span> dataset.  The blue line running through it is the sinc filtered data.  When calculating the gain/loss of the filtered data, we get a much more accurate representation of the real gain and loss.  Even though the <span class="caps">USGS</span> data looks like it is a long ways off from the actual data, the gain and loss numbers average out to be fairly close to reality, especially when graphing a longer route.</p>
+<p>Now onto the details!  The three filters I am about to describe all utilize a near identical programming implementation.  They are window filters, which means you take a neighborhood of points surrounding the central point that you would like to filter, and use them to generate the new central point value.  The simplest of these is a <a href="http://en.wikipedia.org/wiki/Moving_average_(technical_analysis)">central moving average.</a>  With a <span class="caps">CMA</span>, you average all the points in your window, and assign the result to the central point.  This is a quick and easy filter, which produces decent results.  More complex filters use the same concept, but instead of taking a simple average of all points in the neighborhood, we take a weighted average, where the weights of the surrounding points are generated by different mathematical functions.  As a result, with the same code I can merely choose a different function to generate a &#8220;kernel&#8221; with different weights.  This kernel is just a set of n weights, where n is the length of my window size.  So, for a central moving average, the weights would be equal: with a 5 point window, each weight in the kernel would be 0.20.  In something like a Gaussian filter, the 5 point kernel would look something like  [0.01, 0.15, 0.3, 0.15, 0,01], where those made up values are points on the Gaussian function.</p>
+<p>I explored both a <a href="http://en.wikipedia.org/wiki/Sinc_filter">sinc filter</a> and a <a href="http://en.wikipedia.org/wiki/Gaussian_filter">Gaussian filter</a>  when working with my elevation data.  There are more complex and accurate functions available, but approach serious overkill for the problem I am solving.  Additionally, the more powerful signal processing techniques involved regularly sampled datasets, which we do not have (explained below).  In order to use those, we would need to fill-in our datasets with interpolated data, which starts to get messy.</p>
+<p>You may recognize the common bell shaped curve, which is apparent when you graph the kernel created by the Gaussian function:</p>
+<p><img src="/images/gaussian_curve.gif" alt="" /></p>
+<p>The Gaussian filter outputs a `weighted average&#8217; of each point&#8217;s (or pixel, since filtering is typically used in image manipulation and recognition) neighborhood, with a larger weight towards the value of the central points.  These weights are generated by the function shown above, where x is the current index of the kernel we are creating and theta is the standard deviation.  The central point in the kernel has the strongest weight.  What does all this mean?  Simply put, a Gaussian filter provides gentler smoothing and preserves edges better than a mean filter.  Intuitively this makes sense; we are saying the immediately neighboring points are much more relevant when identifying the real value of the current point.  As the points get further away from the current point their values become less relevant.  It is tuned by changing the window size and the standard deviation.  The standard deviation is chosen to be the standard deviation of the noise from the underlying form.</p>
+<p>The sinc filter is implemented identically, though we use a different function to generate our kernel of weights.  This filter is considered an ideal low-pass filter (in its raw mathematical form), with perfect cutoff.  Without going into much detail about a topic I don&#8217;t know much about, the sinc filter performs better when dealing with different elevation sets that have disparate accuracies.  This is important, since I need to smooth both altimeter recorded (accurate and clean) and the <span class="caps">USGS</span> provided data (inaccurate and unclean).  For the sinc filter, we tune it by changing the window size (like the Gaussian), and a frequency value, f.  The electrical engineers choose f based on some logic, but I do not know how to apply that logic to my dataset (since it&#8217;s not an actual signal) and instead I found a good value of f by trial and error.</p>
+<p>The graph of a sinc function:<br />
+<img src="/images/sinc_curve.gif" alt="" /></p>
+<p>The sinc function used in the filter is a specific variation of the sinc function with a Blackman window, which was developed by some smart EEs in the 60&#8217;s.  For more details check out this excellent intro from <a href="http://www.dspguide.com/ch16.htm">dspguide.com</a></p>
+<p>Selecting different standard deviations and window sizes will change the profile of this curve, and thus the resulting smoothing of your data.  If you have very tight sampling (your data points are close together), a larger window size can be beneficial.  If your data points are spaced far apart, then a smaller window size is needed, to avoid giving weight to less important (far out and unrelated) surrounding points.  This presents an interesting problem for the data I am attempting to smooth: I do not have a regular sample rate for these elevation points.  Since many <span class="caps">GPS</span> units have a &#8220;smart recording&#8221; feature, they only record data points when it is necessary.  So, if I am riding along a straight line with no change in heading or elevation, the Garmin 305 puts down something close to 1 point every 16 seconds.  As I make a turn, my logging rate approaches 1 point per second.  Similarly, when drawing a route on the google map, we have irregularly spaced lat/lon points returned.  With this in mind, we need to consider a dynamic window size.  If we link the window size to a distance rather than number of points, we can achieve a more consistant weighting of relevant points in regards to our horizontal scale.  This can include even dropping the concept of filtering when the distance between points is great, by having a window size of 1.</p>
+<p>Below is the code, in ruby, for the sinc filter.  The guassian is left up to the reader, but is a fairly simple drop in replacement.</p>
+<pre data-language="ruby" >
+class SincFilter
+  def initialize(start_n=10, win_width=200, freq=0.04)
+    @start_n = start_n #try this window size, and increase or decrease based on point density
+    @win_width = win_width #width of window in meters
+    @freq = freq #frequency cutoff
+  end
+
+  def filter(dists, eles)
+    sincify(eles, dists)
+  end
+
+
+  private
+
+  #if the sum of the kernel vals is not 1, we will shrink everything a bit...
+  #this is a cheap way to normalize so they sum to 1
+  def normalize_kernel(kern)
+    norm = kern.inject(0) { |res, val| res += val }
+    kern.map { |val| val /= norm }
+  end
+
+  #The sinc function, using a blackman window.
+  def create_kernel(size)
+    return [1] if size == 1
+    kern = []
+
+    (0..size).each do |i|
+      kern[i] = (0.54 - 0.46 * Math.cos(2*Math::PI*i/size))
+      x = i - size/2
+      if x == 0
+        kern[i] *= 2 * Math::PI * @freq
+      else
+        kern[i] *= Math.sin(2 * Math::PI * @freq * x) / x
+      end
+    end
+
+    return kern
+  end
+
+  #now we calculate a weighted average for each point and it's neighbors,
+  #using our kernel as the weight values
+  def sincify(eles, dists)
+    kern = create_kernel(@start_n)
+    result = []
+
+    eles.each_with_index do |point, i|
+      n = @start_n
+      z = n / 2
+      s = i - z
+      e = i + z
+      ks = 0
+      ke = n
+
+      #pick our start and end index such that it is within our array bounds
+      while s &lt; 0 do s += 1; ks += 1 end
+      while e &gt;= eles.length do e -= 1; ke -= 1 end
+
+      #dynamically select the window size
+      dist = dists[e] - dists[s]
+      while dist &gt; @win_width do
+        unless s + 1 &gt; i or e - i &gt; i - s
+          s += 1
+          ks += 1
+        end
+        unless e - 1 &lt; i or e - i &lt; i - s
+          e -= 1 
+          ke -= 1
+        end
+        dist = dists[e] - dists[s]
+      end
+
+      neighbors = []
+      #renormalize the kernel.  If all values don't add up to 1, point will shrink
+      used_kern = normalize_kernel(kern[ks..ke])
+      (s..e).each { |j| neighbors &lt;&lt; eles[j] unless j &lt; 0 or j &gt;= eles.length }
+
+      val = 0
+      neighbors.each_with_index { |pt, i| val += pt * used_kern[i] }
+      result &lt;&lt; (val * 10000.0).round / 10000.0 #geto round..no use with more than 4 decimal places
+    end
+    return result
+  end
+end
+</pre>
+  </div>
+</div>
+
+
+  <div class="post">
+  <h2 class="posttitle">
+    <a href="/blog/2009/06/12/live-scripting-on-android">Live scripting on Android</a>
+  </h2>
+  <em class="postdate">Posted on 12 June 2009.</em>
+  <div class="postbody">
+    <p>One thing that android has been missing is support for scripting languages.  As a result, there has been no good way to write code for the device without sitting in front of a development environment and using the Android <span class="caps">SDK</span>.  Looks like Damon Kohler decided that sucked (rightfully so!) and has put together the Android Scripting Environment.  It currently supports Python, Lua and BeanShell, with JavaScript and Ruby support coming soon.</p>
+<p><a href="http://code.google.com/p/android-scripting/">http://code.google.com/p/android-scripting/</a></p>
+<p>Being able to write code on the device itself that can access the core Android <span class="caps">API</span> is a real potential game changer.  Check out their simple examples for some inspiration.</p>
+  </div>
+</div>
+
+
+  <div class="post">
+  <h2 class="posttitle">
+    <a href="/blog/2009/06/12/gnuplot-bindings-for-ruby-means-nice-graphs-for-rails">gnuplot bindings for ruby means nice graphs for rails</a>
+  </h2>
+  <em class="postdate">Posted on 12 June 2009.</em>
+  <div class="postbody">
+    <p>In experimenting with different filtering functions for elevation data, I needed a way to generate graphs easily from some ruby code.  It was too cumbersome to output a <span class="caps">CSV</span> and open that in another graphing application.  Unfortunately, Ruby lacks some of the awesome libraries like SciPy which is available for Python.  However, any computer running Linux or <span class="caps">OSX</span> comes with the tried and true gnuplot, a simple but powerful graphing program.  Just generate a text file filled with directions for gnuplot, load it up in gnuplot and away you go!</p>
+<p>Luckily, there is a rubygem available to make working with gnuplot a bit easier than string concatenation.  Easy to remember, it&#8217;s just called &#8216;gnuplot&#8217;.  Outdated website <a href="http://rgplot.rubyforge.org/">here</a></p>
+<p>First check that gnuplot is installed by running gnuplot at the command line, and install it if needed.  Then go ahead and install the rubygem.</p>
+<pre data-language="xml" >
+ kingcu@kingcu-desktop:~/ridewithgps$ sudo gem install 'gnuplot'
+</pre>
+<p>After that is out of the way, we are ready to go!  I cooked up this simple ruby class, ModelPlotter, to graph whatever from a rake task:</p>
+<pre data-language="xml" >
+require 'rubygems'
+require 'gnuplot'
+
+class ModelPlotter
+  def initialize(sets, outfile='plot.png', title='graphing things', xlabel='x', ylabel='y')
+    @sets = sets
+    @outfile = outfile
+    @title = title
+    @xlabel = xlabel
+    @ylabel = ylabel
+  end 
+
+  def plot
+    sets = []
+    @sets.each do |s| 
+      sets &lt;&lt; Gnuplot::DataSet.new(generate_vals(s)) { |ds|
+        ds.with = 'lines'
+        ds.title = s[:title]
+        ds.linewidth = 1 
+      }   
+    end 
+
+    write_plot(sets)
+  end 
+
+
+  private
+
+  def generate_vals(set)
+    xvals = []
+    yvals = []
+    lines = set[:data].split("\n")
+    lines.each do |line|
+      vals = line.split(',')
+      xvals &lt;&lt; vals[0].to_f
+      yvals &lt;&lt; vals[1].to_f
+    end 
+    return xvals, yvals
+  end 
+
+  def write_plot(sets)
+    File.open(@outfile, 'w') do |gp|
+      Gnuplot::Plot.new(gp) do |plot|
+        plot.term 'png size 800, 600'
+        plot.output @outfile.gsub(/\.[\w]*$/, '.png')
+        plot.title @title
+        plot.ylabel @ylabel
+        plot.xlabel @xlabel
+        plot.data = sets
+      end 
+    end 
+  end 
+end
+</pre>
+<p>Looking at the plot and write_plot methods shows us the basics of how to use gnuplot for ruby.  First generate some sets, then pass those sets to your plot object.  The block you just created gets yielded, and a file gets created filled with gnuplot directives.  I chose to just save the gnuplot text files, since they are smaller in size than an actual png plot, and I can keep them in version control easily enough.</p>
+<p>The rake task I wrote, to give me graphs of model numbers since my site launched is below.  Warning!  This code is not performant.  There is an <span class="caps">SQL</span> query for every row in the table.  If you have many things in your table, this will be ver slow!  I just slapped that out as a quick proof of concept this morning, using a small dataset.  It&#8217;s up to the reader to make that more efficient.</p>
+<pre data-language="ruby" >
+require 'model_plotter'
+
+namespace :graph do
+  desc 'create a gnuplot file for &lt;model&gt; creation numbers since day 1'
+  task :graph_model_totals, [:model] =&gt; :environment do |t, args|
+    args.with_defaults(:model =&gt; "User")
+    model = eval(args[:model])
+    models_by_day = {}
+    start_date = model.find(:first).created_at + 1.day
+    end_date = Time.now + 1.day
+    index = 0 
+
+    while start_date &lt; end_date
+      models_by_day[index] = model.count(:all, :conditions =&gt; ['created_at &lt; ?', start_date])
+      start_date += 1.day
+      index += 1
+    end 
+
+    keys = []
+    models_by_day.each_key { |k| keys &lt;&lt; k } 
+    keys.sort!
+
+    res = []
+    keys.each { |k| res &lt;&lt; "#{k},#{models_by_day[k]}" }
+    res = res.join("\n")
+
+    sets = [ {:data =&gt; res, :title =&gt; args[:model] + 's' } ] 
+    ylabel = "Number of #{args[:model]}s"
+    xlabel = "Days from launch"
+    title = "Total #{args[:model]}s by day since first user, Oct 29, 2007"
+    plotter = ModelPlotter.new(sets, 'plotfile.plot', title, xlabel, ylabel)
+    plotter.plot
+  end 
+end
+</pre>
+<p>You pass parameters to the rake task using bracket notation:</p>
+<pre data-language="xml" >
+  kingcu@kingcu-desktop:~/ridewithgps$ rake graph:graph_model_totals[User]
+</pre>
+<p>To generate a plot from the file &#8216;plotfile.plot&#8217;:</p>
+<pre data-language="xml" >
+  kingcu@kingcu-desktop:~/ridewithgps$ gnuplot plotfile.plot
+</pre>
+<p>This will kickout a png, &#8216;plotfile.png&#8217;.  Do with it what you want!  If you want to do something more advanced, read through the gnuplot <a href="http://www.gnuplot.info/docs/gnuplot.html">documentation</a></p>
+<p><img src="/images/plotfile.png" alt="" /></p>
+  </div>
+</div>
+
+
+<p class="page_links">
+  <a href="/page3">Next page</a>
+</p>
+
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-7831480-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+      </div>
+
+      <div id="sidebar" class="yui3-u-5-24">
+        <h3>Friends!</h3>
+        <ul>
+          <li><a href="http://ridewithgps.com">Best Bike Website</a></li>
+          <li><a href="http://blog.ridewithgps.com">Ride With GPS Blog</a></li>
+          <li><a href="http://sonicboomracing.com">Sonic Boom Racing</a></li>
+          <li><a href="http://bikeportland.org">Bike Portland</a></li>
+          <li><a href="http://www.upperechelonfitness.com">Upper Echelon Fitness</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <script src="/javascripts/rainbow-custom.min.js"></script>
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-7831480-1']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+  </body>
+</html>

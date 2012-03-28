@@ -38,7 +38,7 @@ Selecting different standard deviations and window sizes will change the profile
 
 Below is the code, in ruby, for the sinc filter.  The guassian is left up to the reader, but is a fairly simple drop in replacement.
 
-<filter:code lang="ruby" theme="blackboard">
+<pre data-language="ruby" >
 class SincFilter
   def initialize(start_n=10, win_width=200, freq=0.04)
     @start_n = start_n #try this window size, and increase or decrease based on point density
@@ -122,5 +122,5 @@ class SincFilter
     return result
   end
 end
-</filter:code>
+</pre>
 

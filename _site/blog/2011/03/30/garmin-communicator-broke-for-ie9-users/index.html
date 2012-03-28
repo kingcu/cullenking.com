@@ -1,93 +1,128 @@
 <!DOCTYPE HTML>
-
-<html>
+<html lang='en' xml:lang='en' xmlns='http://www.w3.org/1999/xhtml'>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <meta name="Cullen King" content="blawg blawg blawg" />
-    <title>Garmin Communicator broke for IE9 users</title>
+    <meta name="description" content="Miscellaneous programming tips, as well as thoughts on business and fitness." />
+    <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/combo?3.3.0/build/cssfonts/fonts-min.css&3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssgrids/grids-min.css&3.3.0/build/cssbase/base-min.css" />
+    <link href="/stylesheets/rainbow.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="/stylesheets/main.css" rel="stylesheet" type="text/css" media="screen" />
+    <title>Cullen's Blog...</title>
   </head>
   <body>
-    <header>
+    <div id="header">
       <h1><a href="/">Home</a></h1>
-    </header>
-    <section>
-      <div class="content">
-  <div id="post">
-    <h1></h1>
+    </div>
+    <div id="content" class="yui3-g">
+      <div id="posts" class="yui3-u-19-24">
+        <div class="post">
+  <h2 class="posttitle">
+    <a href="/blog/2011/03/30/garmin-communicator-broke-for-ie9-users">Garmin Communicator broke for IE9 users</a>
+  </h2>
+  <em class="postdate">Posted on 30 March 2011.</em>
+  <div class="postbody">
     <p>If you have the Garmin Communicator <span class="caps">API</span> integrated into your site, and you have noticed IE9 no longer works with the new <span class="caps">FIT</span> enabled devices, it&#8217;s not your fault!  While I don&#8217;t know if it&#8217;s a bug in the Communicator plugin or an intentional move by Garmin, Connect is the only site which allows IE9 users with <span class="caps">FIT</span> enabled devices like the Edge 500 and Edge 800 series to sync.</p>
 <p>However, there&#8217;s a simple solution.  You just have to jump into the Communicator javascript <span class="caps">API</span> and change a few things.  The problem is that the actual browser plugin says that the device doesn&#8217;t support the <span class="caps">FIT</span> file format.  The solution is &#8220;faking&#8221; the results for users with the newer devices.</p>
 <p>To fake out the plugin, I simply use a regular expression to check that the actual name of the <span class="caps">GPS</span> device matches a <span class="caps">FIT</span> enabled device.  In this solution I only have a regex that detects Edge 500 and Edge 800 devices, and you may want to expand the expression to other devices.</p>
 <p>First, open up GarminDevicePlugin.js and head to the initialize function, which is around line 51.</p>
-<filter:code lang="javascript" theme="blackboard">
-initialize: function(pluginElement) {
-this.plugin = pluginElement;
-this.unlocked = false;
-this.deviceName = &quot;&quot;;
-//console.debug(&#8220;DevicePlugin constructor supportsFitnessWrite=&#8221;+this.supportsFitnessWrite)
-},
-</filter:code>
+<pre data-language="javascript" theme="blackboard">
+  initialize: function(pluginElement) {        
+      this.plugin = pluginElement;
+      this.unlocked = false;
+      this.deviceName = "";
+      //console.debug("DevicePlugin constructor supportsFitnessWrite="+this.supportsFitnessWrite)
+  },
+</pre>
 <p>Notice how I added the field deviceName to the class object.  We will use this to assign the first detected device&#8217;s name to the plugin, so that it can use a regex later.  In order to assign this value when the device itself is detected, we have to modify GarminDeviceControl.js at line 240:</p>
-<filter:code lang="javascript" theme="blackboard">
-_finishFindDevices: function() {
-if(this.garminPlugin.finishFindDevices()) {
-this.devices = Garmin.PluginUtils.parseDeviceXml(this.garminPlugin, this.getDetailedDeviceData);
-this.numDevices = this.devices.length;
-this.deviceNumber = 0;
-if(this.devices.length &gt; 0) this.garminPlugin.deviceName = this.devices<sup class="footnote" id="fnr0"><a href="#fn0">0</a></sup>.getDisplayName();
-this._broadcaster.dispatch(&#8220;onFinishFindDevices&#8221;, {controller: this});
-} else {
-setTimeout(function() { this._finishFindDevices() }.bind(this), 500);
-}
-},
-</filter:code>
+<pre data-language="javascript" theme="blackboard">
+   _finishFindDevices: function() {
+        if(this.garminPlugin.finishFindDevices()) {
+            this.devices = Garmin.PluginUtils.parseDeviceXml(this.garminPlugin, this.getDetailedDeviceData);
+            this.numDevices = this.devices.length;
+            this.deviceNumber = 0;
+            if(this.devices.length &gt; 0) this.garminPlugin.deviceName = this.devices[0].getDisplayName();
+            this._broadcaster.dispatch("onFinishFindDevices", {controller: this});
+       } else {
+          setTimeout(function() { this._finishFindDevices() }.bind(this), 500);
+       }
+   },
+</pre>
 <p>We only assign the device name if there actually is a device detected.  Also it is important that we do this before the onFinishFindDevices event is dispatched.</p>
 <p>Final piece of the puzzle is actually using this information.  To do this, we head back to GarminDevicePlugin.js and head to line 161 and the function &#8220;getSupportsFitnessDirectoryRead&#8221;.  There are a few functions we want to add this check to, including &#8220;getSupportsFitDirectoryRead&#8221;.  I simply added another function to do the actual checking which returns true or false, then call that function wherever I need to.</p>
-<filter:code lang="javascript" theme="blackboard">
-isFitEnabledEdge: function() {
-if(this.deviceName.match(/edge (5|8)00/i)) return true;
-return false;
-},
-<p>/** Lazy-logic accessor to fitness write support var.<br />
-	 * This is used to detect whether the user&#8217;s installed plugin supports fitness writing.<br />
-	 * Fitness writing capability has a minimum requirement of plugin version 2.2.0.1.<br />
-	 * This should <span class="caps">NOT</span> be called until the plug-in has been unlocked.<br />
-	 */<br />
-	getSupportsFitnessWrite: function() {<br />
-            if(this.isFitEnabledEdge()) return true;<br />
-            return this._getPluginFunctionExists(&#8220;StartWriteFitnessData&#8221;); <br />
-	},</p>
-<p>/** Lazy-logic accessor to fitness write support var.<br />
-	 * This is used to detect whether the user&#8217;s installed plugin supports fitness directory reading,<br />
-	 * which has a minimum requirement of plugin version 2.2.0.2.<br />
-	 * This should <span class="caps">NOT</span> be called until the plug-in has been unlocked.<br />
-	 */<br />
-	getSupportsFitnessDirectoryRead: function() {	<br />
-            if(this.isFitEnabledEdge()) return true;<br />
-            return this._getPluginFunctionExists(&#8220;StartReadFitnessDirectory&#8221;);<br />
-	},</p>
-<p>/** Lazy-logic accessor to <span class="caps">FIT</span> read support var.<br />
-	 * This is used to detect whether the user&#8217;s installed plugin supports <span class="caps">FIT</span> directory reading,<br />
-	 * which has a minimum requirement of plugin version 2.8.1.0.<br />
-	 * This should <span class="caps">NOT</span> be called until the plug-in has been unlocked.<br />
-	 */<br />
-	getSupportsFitDirectoryRead: function() {		<br />
-            if(this.isFitEnabledEdge()) return true;<br />
-            return this._getPluginFunctionExists(&#8220;StartReadFITDirectory&#8221;);<br />
-	},</p>
-<p>/** Lazy-logic accessor to fitness read compressed support var.<br />
-	 * This is used to detect whether the user&#8217;s installed plugin supports fitness reading in compressed format,<br />
-	 * which has a minimum requirement of plugin version 2.2.0.2.<br />
-	 * This should <span class="caps">NOT</span> be called until the plug-in has been unlocked.<br />
-	 */<br />
-	getSupportsFitnessReadCompressed: function() {<br />
-            if(this.isFitEnabledEdge()) return true;<br />
-            return this._getPluginFieldExists(this.plugin.TcdXmlz);<br />
-	},</p>
-</filter:code>
+<pre><code data-language="javascript">
+  isFitEnabledEdge: function() {
+      if(this.deviceName.match(/edge (5|8)00/i)) return true;
+      return false;
+  },
+    
+    /** Lazy-logic accessor to fitness write support var.
+     * This is used to detect whether the user's installed plugin supports fitness writing.
+     * Fitness writing capability has a minimum requirement of plugin version 2.2.0.1.
+     * This should NOT be called until the plug-in has been unlocked.
+     */
+    getSupportsFitnessWrite: function() {
+        if(this.isFitEnabledEdge()) return true;
+        return this._getPluginFunctionExists("StartWriteFitnessData"); 
+    },
+    
+    /** Lazy-logic accessor to fitness write support var.
+     * This is used to detect whether the user's installed plugin supports fitness directory reading,
+     * which has a minimum requirement of plugin version 2.2.0.2.
+     * This should NOT be called until the plug-in has been unlocked.
+     */
+    getSupportsFitnessDirectoryRead: function() {	
+        if(this.isFitEnabledEdge()) return true;
+        return this._getPluginFunctionExists("StartReadFitnessDirectory");
+    },
+
+    /** Lazy-logic accessor to FIT read support var.
+     * This is used to detect whether the user's installed plugin supports FIT directory reading,
+     * which has a minimum requirement of plugin version 2.8.1.0.
+     * This should NOT be called until the plug-in has been unlocked.
+     */
+    getSupportsFitDirectoryRead: function() {		
+        if(this.isFitEnabledEdge()) return true;
+        return this._getPluginFunctionExists("StartReadFITDirectory");
+    },
+    
+    /** Lazy-logic accessor to fitness read compressed support var.
+     * This is used to detect whether the user's installed plugin supports fitness reading in compressed format,
+     * which has a minimum requirement of plugin version 2.2.0.2.
+     * This should NOT be called until the plug-in has been unlocked.
+     */
+    getSupportsFitnessReadCompressed: function() {
+        if(this.isFitEnabledEdge()) return true;
+        return this._getPluginFieldExists(this.plugin.TcdXmlz);
+    },
+</pre><p></code></p>
 <p>There may be more places where this is needed, but this works for my simple use cases, merely reading files from <span class="caps">GPS</span> devices.  Hope this helps!</p>
   </div>
 </div>
 
-    </section>
+      </div>
+
+      <div id="sidebar" class="yui3-u-5-24">
+        <h3>Friends!</h3>
+        <ul>
+          <li><a href="http://ridewithgps.com">Best Bike Website</a></li>
+          <li><a href="http://blog.ridewithgps.com">Ride With GPS Blog</a></li>
+          <li><a href="http://sonicboomracing.com">Sonic Boom Racing</a></li>
+          <li><a href="http://bikeportland.org">Bike Portland</a></li>
+          <li><a href="http://www.upperechelonfitness.com">Upper Echelon Fitness</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <script src="/javascripts/rainbow-custom.min.js"></script>
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-7831480-1']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
   </body>
 </html>

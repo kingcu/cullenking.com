@@ -15,34 +15,34 @@ There was one thing to think of when deciding on this solution: filesystems use 
 
 This task was fairly straight forward with one exception: storing a file corresponding to a particular trip or route requires the ID of that trip or route in the database.  This ID is not available until after the database entry is saved, so we have to persist the JSON until we have that ID available.  The canonical rails way of doing this is of course using the after_save method.  I keep the JSON around by shoving it into an instance variable on the particular route/trip instance we are saving, then clearing that variable when the file has been written.
 
-<filter:code lang="ruby" theme="blackboard">
-  def data_full= json
-    if self.id == nil
-      @data_full = json
-      return
-    end
-
-    if json
-      File.open(df_path, 'w+') { |file| file << data.to_json }
-    elsif File.exists?(df_path)
-      File.delete(df_path)
-    end
-    @data_full = nil
+<pre data-language="ruby" >
+def data_full= json
+  if self.id == nil
+    @data_full = json
+    return
   end
-</filter:code>
+
+  if json
+    File.open(df_path, 'w+') { |file| file << data.to_json }
+  elsif File.exists?(df_path)
+    File.delete(df_path)
+  end
+  @data_full = nil
+end
+</pre>
 
 A simplified version of what we are using is above, which is loaded into routes and trips using a module.  Basically, we first check if the ID exisits and if not, populate the instance variable with our text.  If it does, we open the flatfile in truncate mode (overwrite if it already exists).  If a nil value is passed in, we delete the file if the file exists.
 
 The after save method for routes and trips is trivial as well, since we just call the assignment again.  On this second call, the assignment falls past the conditional check for a nil id, and the file write occurs.
 
-<filter:code lang="ruby" theme="blackboard">
-  def after_save
-    if @data_full
-      self.data_full = @data_full
-    end
-    #some boring stuff also happens...
+<pre data-language="ruby" >
+def after_save
+  if @data_full
+    self.data_full = @data_full
   end
-</filter:code>
+  #some boring stuff also happens...
+end
+</pre>
 
 The final bit of the puzzle is removing files if a route/trip is destroyed, which is pretty trivial.  This will greatly improve throughput on heavy loads, which will be welcomed when we get a huge influx of users next riding season.  The best part? our 3GB database dump was now whittled down to a mere 26MB!  We can easily hit 100k users and 500k routes/trips and not break the 1GB mark, which means database scaling will only be for performance rather than space considerations.  The directory structure containing the flatfiles is currently at 2.6 gigs.  With rsync, backups are now speedy and efficient.
 

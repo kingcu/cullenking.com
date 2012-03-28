@@ -13,13 +13,13 @@ Luckily, there is a rubygem available to make working with gnuplot a bit easier 
 
 First check that gnuplot is installed by running gnuplot at the command line, and install it if needed.  Then go ahead and install the rubygem.
 
-<filter:code lang="xml" theme="blackboard">
+<pre data-language="xml" >
  kingcu@kingcu-desktop:~/ridewithgps$ sudo gem install 'gnuplot'
-</filter:code>
+</pre>
 
 After that is out of the way, we are ready to go!  I cooked up this simple ruby class, ModelPlotter, to graph whatever from a rake task:
 
-<filter:code lang="xml" theme="blackboard">
+<pre data-language="xml" >
 require 'rubygems'
 require 'gnuplot'
 
@@ -73,14 +73,14 @@ class ModelPlotter
     end 
   end 
 end
-</filter:code>
+</pre>
 
 Looking at the plot and write_plot methods shows us the basics of how to use gnuplot for ruby.  First generate some sets, then pass those sets to your plot object.  The block you just created gets yielded, and a file gets created filled with gnuplot directives.  I chose to just save the gnuplot text files, since they are smaller in size than an actual png plot, and I can keep them in version control easily enough.
 
 The rake task I wrote, to give me graphs of model numbers since my site launched is below.  Warning!  This code is not performant.  There is an SQL query for every row in the table.  If you have many things in your table, this will be ver slow!  I just slapped that out as a quick proof of concept this morning, using a small dataset.  It's up to the reader to make that more efficient.
 
-<filter:code lang="ruby" theme="blackboard">
-equire 'model_plotter'
+<pre data-language="ruby" >
+require 'model_plotter'
 
 namespace :graph do
   desc 'create a gnuplot file for <model> creation numbers since day 1'
@@ -114,19 +114,19 @@ namespace :graph do
     plotter.plot
   end 
 end
-</filter:code>
+</pre>
 
 You pass parameters to the rake task using bracket notation:
 
-<filter:code lang="xml" theme="blackboard">
+<pre data-language="xml" >
   kingcu@kingcu-desktop:~/ridewithgps$ rake graph:graph_model_totals[User]
-</filter:code>
+</pre>
 
 To generate a plot from the file 'plotfile.plot':
 
-<filter:code lang="xml" theme="blackboard">
+<pre data-language="xml" >
   kingcu@kingcu-desktop:~/ridewithgps$ gnuplot plotfile.plot
-</filter:code>
+</pre>
 
 This will kickout a png, 'plotfile.png'.  Do with it what you want!  If you want to do something more advanced, read through the gnuplot "documentation":http://www.gnuplot.info/docs/gnuplot.html
 

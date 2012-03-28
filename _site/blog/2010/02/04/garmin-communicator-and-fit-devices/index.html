@@ -1,19 +1,25 @@
 <!DOCTYPE HTML>
-
-<html>
+<html lang='en' xml:lang='en' xmlns='http://www.w3.org/1999/xhtml'>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <meta name="Cullen King" content="blawg blawg blawg" />
-    <title>Garmin Communicator and FIT devices</title>
+    <meta name="description" content="Miscellaneous programming tips, as well as thoughts on business and fitness." />
+    <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/combo?3.3.0/build/cssfonts/fonts-min.css&3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssgrids/grids-min.css&3.3.0/build/cssbase/base-min.css" />
+    <link href="/stylesheets/rainbow.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="/stylesheets/main.css" rel="stylesheet" type="text/css" media="screen" />
+    <title>Cullen's Blog...</title>
   </head>
   <body>
-    <header>
+    <div id="header">
       <h1><a href="/">Home</a></h1>
-    </header>
-    <section>
-      <div class="content">
-  <div id="post">
-    <h1></h1>
+    </div>
+    <div id="content" class="yui3-g">
+      <div id="posts" class="yui3-u-19-24">
+        <div class="post">
+  <h2 class="posttitle">
+    <a href="/blog/2010/02/04/garmin-communicator-and-fit-devices">Garmin Communicator and FIT devices</a>
+  </h2>
+  <em class="postdate">Posted on 04 February 2010.</em>
+  <div class="postbody">
     <p>This week I attempted to get our Garmin Communicator implementation for <a href="http://ridewithgps.com">http://ridewithgps.com</a> to support Garmin&#8217;s new line of cycling computers, the Edge 500.  The 500 uses a new file format, and a new protocol to get files off the device, that is definitely a step backwards for third party developers.  After some amount of wrestling attempting to get the 500 to play nicely with Communicator, I realized that Garmin must have disabled third party sites from using Communicator to sync with new <span class="caps">FIT</span> devices.</p>
 <p>We know the plugin and associated javascript are capable of it, since both are the same on Garmin&#8217;s own site, so the only thing that must be different is only their site is permitted to use the methods needed to get data off the device.  I am not quite sure the motivation, perhaps they are doing this to make sure everything goes smooth and all errors get fixed before releasing the functionality to the rest of the developers.</p>
 <p>So, for anyone working with an Edge 500 and Garmin Communicator, the exception being thrown by the plugin when executing the method getBinaryFile() which states &#8216;Web site is not privileged&#8217; is just letting you know you are locked out until they release an update.  There is no current expected release date for this functionality.</p>
@@ -24,6 +30,31 @@
   </div>
 </div>
 
-    </section>
+      </div>
+
+      <div id="sidebar" class="yui3-u-5-24">
+        <h3>Friends!</h3>
+        <ul>
+          <li><a href="http://ridewithgps.com">Best Bike Website</a></li>
+          <li><a href="http://blog.ridewithgps.com">Ride With GPS Blog</a></li>
+          <li><a href="http://sonicboomracing.com">Sonic Boom Racing</a></li>
+          <li><a href="http://bikeportland.org">Bike Portland</a></li>
+          <li><a href="http://www.upperechelonfitness.com">Upper Echelon Fitness</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <script src="/javascripts/rainbow-custom.min.js"></script>
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-7831480-1']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
   </body>
 </html>

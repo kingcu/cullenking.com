@@ -1,25 +1,56 @@
 <!DOCTYPE HTML>
-
-<html>
+<html lang='en' xml:lang='en' xmlns='http://www.w3.org/1999/xhtml'>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <meta name="Cullen King" content="blawg blawg blawg" />
-    <title>Don't change the containing div of a flash movie!</title>
+    <meta name="description" content="Miscellaneous programming tips, as well as thoughts on business and fitness." />
+    <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/combo?3.3.0/build/cssfonts/fonts-min.css&3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssgrids/grids-min.css&3.3.0/build/cssbase/base-min.css" />
+    <link href="/stylesheets/rainbow.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="/stylesheets/main.css" rel="stylesheet" type="text/css" media="screen" />
+    <title>Cullen's Blog...</title>
   </head>
   <body>
-    <header>
+    <div id="header">
       <h1><a href="/">Home</a></h1>
-    </header>
-    <section>
-      <div class="content">
-  <div id="post">
-    <h1></h1>
+    </div>
+    <div id="content" class="yui3-g">
+      <div id="posts" class="yui3-u-19-24">
+        <div class="post">
+  <h2 class="posttitle">
+    <a href="/blog/2010/02/26/don-t-change-the-containing-div-of-a-flash-movie">Don't change the containing div of a flash movie!</a>
+  </h2>
+  <em class="postdate">Posted on 26 February 2010.</em>
+  <div class="postbody">
     <p>I just tracked down a bug that was affecting some versions of Firefox on Windows, which is usually not a combination to worry about or test for!</p>
 <p>To combat weird z-index issues between flash and <span class="caps">HTML</span> under Linux, we have been moving the flash movie off screen and changing some styles, then moving it back when the overlay is closed.  One of the styles being changes was the overflow property of the <span class="caps">DIV</span> containing the flash movie.  This style change was causing the flash movie to be completely reloaded, which broke all ExternalInterface callbacks setup on the flash movie.</p>
 <p>Removing the offending style changes solved the problem.  What a pain to track down!</p>
   </div>
 </div>
 
-    </section>
+      </div>
+
+      <div id="sidebar" class="yui3-u-5-24">
+        <h3>Friends!</h3>
+        <ul>
+          <li><a href="http://ridewithgps.com">Best Bike Website</a></li>
+          <li><a href="http://blog.ridewithgps.com">Ride With GPS Blog</a></li>
+          <li><a href="http://sonicboomracing.com">Sonic Boom Racing</a></li>
+          <li><a href="http://bikeportland.org">Bike Portland</a></li>
+          <li><a href="http://www.upperechelonfitness.com">Upper Echelon Fitness</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <script src="/javascripts/rainbow-custom.min.js"></script>
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-7831480-1']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
   </body>
 </html>

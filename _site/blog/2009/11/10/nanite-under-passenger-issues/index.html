@@ -1,32 +1,63 @@
 <!DOCTYPE HTML>
-
-<html>
+<html lang='en' xml:lang='en' xmlns='http://www.w3.org/1999/xhtml'>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <meta name="Cullen King" content="blawg blawg blawg" />
-    <title>Nanite under Passenger issues</title>
+    <meta name="description" content="Miscellaneous programming tips, as well as thoughts on business and fitness." />
+    <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/combo?3.3.0/build/cssfonts/fonts-min.css&3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssgrids/grids-min.css&3.3.0/build/cssbase/base-min.css" />
+    <link href="/stylesheets/rainbow.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="/stylesheets/main.css" rel="stylesheet" type="text/css" media="screen" />
+    <title>Cullen's Blog...</title>
   </head>
   <body>
-    <header>
+    <div id="header">
       <h1><a href="/">Home</a></h1>
-    </header>
-    <section>
-      <div class="content">
-  <div id="post">
-    <h1></h1>
+    </div>
+    <div id="content" class="yui3-g">
+      <div id="posts" class="yui3-u-19-24">
+        <div class="post">
+  <h2 class="posttitle">
+    <a href="/blog/2009/11/10/nanite-under-passenger-issues">Nanite under Passenger issues</a>
+  </h2>
+  <em class="postdate">Posted on 10 November 2009.</em>
+  <div class="postbody">
     <p>We had been having some serious issues running Nanite under Phusion Passenger, namely we kept losing jobs, and all subsequent jobs did not make it to any agent.  It turns out this is an issue with the amqp gem!</p>
 <p>The problem:  messages saying eventmachine is not initialized:</p>
-<filter:code theme="blackboard">
-<p>RuntimeError (eventmachine not initialized:<br />
-evma_send_data_to_connection):<br />
-  eventmachine (0.12.8) lib/em/connection.rb:216:in `send_data&#8217;<br />
-  eventmachine (0.12.8) lib/em/connection.rb:216:in `send_data&#8217;</p>
-</filter:code>
+<pre >
+RuntimeError (eventmachine not initialized:
+evma_send_data_to_connection):
+  eventmachine (0.12.8) lib/em/connection.rb:216:in `send_data'
+  eventmachine (0.12.8) lib/em/connection.rb:216:in `send_data' 
+</pre>
 <p>After some digging around, I found the issue on the nanite github page:  <a href="http://github.com/ezmobius/nanite/issues#issue/8">ezmobius nanite page</a> The solution is easy, upgrade amqp to 0.6.5 (or greater, 0.6.5 is latest at time of writing).</p>
 <p>Voila!  No more lost jobs, things appear to be stable.</p>
   </div>
 </div>
 
-    </section>
+      </div>
+
+      <div id="sidebar" class="yui3-u-5-24">
+        <h3>Friends!</h3>
+        <ul>
+          <li><a href="http://ridewithgps.com">Best Bike Website</a></li>
+          <li><a href="http://blog.ridewithgps.com">Ride With GPS Blog</a></li>
+          <li><a href="http://sonicboomracing.com">Sonic Boom Racing</a></li>
+          <li><a href="http://bikeportland.org">Bike Portland</a></li>
+          <li><a href="http://www.upperechelonfitness.com">Upper Echelon Fitness</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <script src="/javascripts/rainbow-custom.min.js"></script>
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-7831480-1']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
   </body>
 </html>

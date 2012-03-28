@@ -1,108 +1,363 @@
 <!DOCTYPE HTML>
-
-<html>
+<html lang='en' xml:lang='en' xmlns='http://www.w3.org/1999/xhtml'>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <meta name="Cullen King" content="blawg blawg blawg" />
-    <title>Personal Blog of Cullen King</title>
+    <meta name="description" content="Miscellaneous programming tips, as well as thoughts on business and fitness." />
+    <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/combo?3.3.0/build/cssfonts/fonts-min.css&3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssgrids/grids-min.css&3.3.0/build/cssbase/base-min.css" />
+    <link href="/stylesheets/rainbow.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="/stylesheets/main.css" rel="stylesheet" type="text/css" media="screen" />
+    <title>Cullen's Blog...</title>
   </head>
   <body>
-    <header>
+    <div id="header">
       <h1><a href="/">Home</a></h1>
-    </header>
-    <section>
-      <div class="content">
-  <div class="related">
-    <ul>
-      
-      <li>
-	<span>April  7, 2011</span> <a href="/blog/2011/04/07/using-the-edge-800-with-turn-by-turn-directions">Using the Edge 800 with turn by turn directions</a>
-      </li>
-      
-      <li>
-	<span>March 30, 2011</span> <a href="/blog/2011/03/30/garmin-communicator-broke-for-ie9-users">Garmin Communicator broke for IE9 users</a>
-      </li>
-      
-      <li>
-	<span>March 18, 2011</span> <a href="/blog/2011/03/18/did-mongoid-break-your-migrations">Did Mongoid Break Your Migrations?</a>
-      </li>
-      
-      <li>
-	<span>September 27, 2010</span> <a href="/blog/2010/09/27/how-to-catch-a-rodent-not-informant-rat">How to catch a (rodent, not informant) rat</a>
-      </li>
-      
-      <li>
-	<span>July 19, 2010</span> <a href="/blog/2010/07/19/nginx-error-log-filling-up-with-rewrite-rules">nginx error log filling up with rewrite rules</a>
-      </li>
-      
-      <li>
-	<span>June  2, 2010</span> <a href="/blog/2010/06/02/converting-dems-from-geotiff-to-gridfloat">Converting DEM from GeoTIFF to GridFloat with C Source</a>
-      </li>
-      
-      <li>
-	<span>April 21, 2010</span> <a href="/blog/2010/04/21/error-1010-a-term-is-undefined-and-has-no-properties">Error</a>
-      </li>
-      
-      <li>
-	<span>April 20, 2010</span> <a href="/blog/2010/04/20/installing-ggplot2-with-r-on-ubuntu">Installing ggplot2 with R on Ubuntu</a>
-      </li>
-      
-      <li>
-	<span>March  5, 2010</span> <a href="/blog/2010/03/05/garmin-communicator-getting-fit-support">Garmin Communicator getting FIT support</a>
-      </li>
-      
-      <li>
-	<span>March  1, 2010</span> <a href="/blog/2010/03/01/recovering-a-lost-commit-in-git">Recovering a lost commit in GIT</a>
-      </li>
-      
-      <li>
-	<span>February 26, 2010</span> <a href="/blog/2010/02/26/don-t-change-the-containing-div-of-a-flash-movie">Don't change the containing div of a flash movie!</a>
-      </li>
-      
-      <li>
-	<span>February  4, 2010</span> <a href="/blog/2010/02/04/garmin-communicator-and-fit-devices">Garmin Communicator and FIT devices</a>
-      </li>
-      
-      <li>
-	<span>December 17, 2009</span> <a href="/blog/2009/12/17/database-optimizations">Database Optimizations</a>
-      </li>
-      
-      <li>
-	<span>November 12, 2009</span> <a href="/blog/2009/11/12/nanite-rails-redis-deployment-gotchas">Nanite, Rails, Redis deployment gotchas</a>
-      </li>
-      
-      <li>
-	<span>November 10, 2009</span> <a href="/blog/2009/11/10/nanite-under-passenger-issues">Nanite under Passenger issues</a>
-      </li>
-      
-      <li>
-	<span>July  2, 2009</span> <a href="/blog/2009/07/02/make-your-site-friendly-to-link-to-on-facebook">Make your site friendly to link to on Facebook</a>
-      </li>
-      
-      <li>
-	<span>June 12, 2009</span> <a href="/blog/2009/06/12/using-gaussian-and-sinc-filters-on-elevation-data">Using Gaussian and sinc filters on elevation data</a>
-      </li>
-      
-      <li>
-	<span>June 12, 2009</span> <a href="/blog/2009/06/12/live-scripting-on-android">Live scripting on Android</a>
-      </li>
-      
-      <li>
-	<span>June 12, 2009</span> <a href="/blog/2009/06/12/gnuplot-bindings-for-ruby-means-nice-graphs-for-rails">gnuplot bindings for ruby means nice graphs for rails</a>
-      </li>
-      
-      <li>
-	<span>March  9, 2009</span> <a href="/blog/2009/03/09/creating-gpx-using-rexml">Creating GPX using REXML</a>
-      </li>
-      
-      <li>
-	<span>March  8, 2009</span> <a href="/blog/2009/03/08/welcome">Welcome!</a>
-      </li>
-      
-    </ul>
+    </div>
+    <div id="content" class="yui3-g">
+      <div id="posts" class="yui3-u-19-24">
+        
+  <div class="post">
+  <h2 class="posttitle">
+    <a href="/blog/2011/11/26/a-real-tileserver-howto">The Only Complete OSM Tileserver Guide</a>
+  </h2>
+  <em class="postdate">Posted on 26 November 2011.</em>
+  <div class="postbody">
+    <p>With Google&#8217;s recent announcement to start charging for the use of Maps, we<br />
+started to worry.  After running the numbers and assuming reasonable growth (the<br />
+same growth we had in 2010), http://ridewithgps.com was looking at around<br />
+$40,000 per year in usage!  This is considerably higher than our budget, so I<br />
+finally took the plunge <br />
+I have just spent the last two weeks setting up a tileserver on the <span class="caps">OSM</span> stack.</p>
   </div>
 </div>
 
-    </section>
+
+  <div class="post">
+  <h2 class="posttitle">
+    <a href="/blog/2011/04/07/using-the-edge-800-with-turn-by-turn-directions">Using the Edge 800 with turn by turn directions</a>
+  </h2>
+  <em class="postdate">Posted on 07 April 2011.</em>
+  <div class="postbody">
+    <p>I finally got around to putting up some comprehensive information about the Edge 800, specifically in regards to route navigation and Open Street Maps.  Detailed information can be found here on how to <a href="http://ridewithgps.com/edge_800">use your Edge 800 for turn by turn directions</a> &#8211; additionally, the page has information for how to download and load <span class="caps">OSM</span> (Open Street Maps) onto an Edge 800 for people who didn&#8217;t purchase Garmin&#8217;s City Navigator maps.</p>
+  </div>
+</div>
+
+
+  <div class="post">
+  <h2 class="posttitle">
+    <a href="/blog/2011/03/30/garmin-communicator-broke-for-ie9-users">Garmin Communicator broke for IE9 users</a>
+  </h2>
+  <em class="postdate">Posted on 30 March 2011.</em>
+  <div class="postbody">
+    <p>If you have the Garmin Communicator <span class="caps">API</span> integrated into your site, and you have noticed IE9 no longer works with the new <span class="caps">FIT</span> enabled devices, it&#8217;s not your fault!  While I don&#8217;t know if it&#8217;s a bug in the Communicator plugin or an intentional move by Garmin, Connect is the only site which allows IE9 users with <span class="caps">FIT</span> enabled devices like the Edge 500 and Edge 800 series to sync.</p>
+<p>However, there&#8217;s a simple solution.  You just have to jump into the Communicator javascript <span class="caps">API</span> and change a few things.  The problem is that the actual browser plugin says that the device doesn&#8217;t support the <span class="caps">FIT</span> file format.  The solution is &#8220;faking&#8221; the results for users with the newer devices.</p>
+<p>To fake out the plugin, I simply use a regular expression to check that the actual name of the <span class="caps">GPS</span> device matches a <span class="caps">FIT</span> enabled device.  In this solution I only have a regex that detects Edge 500 and Edge 800 devices, and you may want to expand the expression to other devices.</p>
+<p>First, open up GarminDevicePlugin.js and head to the initialize function, which is around line 51.</p>
+<pre data-language="javascript" theme="blackboard">
+  initialize: function(pluginElement) {        
+      this.plugin = pluginElement;
+      this.unlocked = false;
+      this.deviceName = "";
+      //console.debug("DevicePlugin constructor supportsFitnessWrite="+this.supportsFitnessWrite)
+  },
+</pre>
+<p>Notice how I added the field deviceName to the class object.  We will use this to assign the first detected device&#8217;s name to the plugin, so that it can use a regex later.  In order to assign this value when the device itself is detected, we have to modify GarminDeviceControl.js at line 240:</p>
+<pre data-language="javascript" theme="blackboard">
+   _finishFindDevices: function() {
+        if(this.garminPlugin.finishFindDevices()) {
+            this.devices = Garmin.PluginUtils.parseDeviceXml(this.garminPlugin, this.getDetailedDeviceData);
+            this.numDevices = this.devices.length;
+            this.deviceNumber = 0;
+            if(this.devices.length &gt; 0) this.garminPlugin.deviceName = this.devices[0].getDisplayName();
+            this._broadcaster.dispatch("onFinishFindDevices", {controller: this});
+       } else {
+          setTimeout(function() { this._finishFindDevices() }.bind(this), 500);
+       }
+   },
+</pre>
+<p>We only assign the device name if there actually is a device detected.  Also it is important that we do this before the onFinishFindDevices event is dispatched.</p>
+<p>Final piece of the puzzle is actually using this information.  To do this, we head back to GarminDevicePlugin.js and head to line 161 and the function &#8220;getSupportsFitnessDirectoryRead&#8221;.  There are a few functions we want to add this check to, including &#8220;getSupportsFitDirectoryRead&#8221;.  I simply added another function to do the actual checking which returns true or false, then call that function wherever I need to.</p>
+<pre><code data-language="javascript">
+  isFitEnabledEdge: function() {
+      if(this.deviceName.match(/edge (5|8)00/i)) return true;
+      return false;
+  },
+    
+    /** Lazy-logic accessor to fitness write support var.
+     * This is used to detect whether the user's installed plugin supports fitness writing.
+     * Fitness writing capability has a minimum requirement of plugin version 2.2.0.1.
+     * This should NOT be called until the plug-in has been unlocked.
+     */
+    getSupportsFitnessWrite: function() {
+        if(this.isFitEnabledEdge()) return true;
+        return this._getPluginFunctionExists("StartWriteFitnessData"); 
+    },
+    
+    /** Lazy-logic accessor to fitness write support var.
+     * This is used to detect whether the user's installed plugin supports fitness directory reading,
+     * which has a minimum requirement of plugin version 2.2.0.2.
+     * This should NOT be called until the plug-in has been unlocked.
+     */
+    getSupportsFitnessDirectoryRead: function() {	
+        if(this.isFitEnabledEdge()) return true;
+        return this._getPluginFunctionExists("StartReadFitnessDirectory");
+    },
+
+    /** Lazy-logic accessor to FIT read support var.
+     * This is used to detect whether the user's installed plugin supports FIT directory reading,
+     * which has a minimum requirement of plugin version 2.8.1.0.
+     * This should NOT be called until the plug-in has been unlocked.
+     */
+    getSupportsFitDirectoryRead: function() {		
+        if(this.isFitEnabledEdge()) return true;
+        return this._getPluginFunctionExists("StartReadFITDirectory");
+    },
+    
+    /** Lazy-logic accessor to fitness read compressed support var.
+     * This is used to detect whether the user's installed plugin supports fitness reading in compressed format,
+     * which has a minimum requirement of plugin version 2.2.0.2.
+     * This should NOT be called until the plug-in has been unlocked.
+     */
+    getSupportsFitnessReadCompressed: function() {
+        if(this.isFitEnabledEdge()) return true;
+        return this._getPluginFieldExists(this.plugin.TcdXmlz);
+    },
+</pre><p></code></p>
+<p>There may be more places where this is needed, but this works for my simple use cases, merely reading files from <span class="caps">GPS</span> devices.  Hope this helps!</p>
+  </div>
+</div>
+
+
+  <div class="post">
+  <h2 class="posttitle">
+    <a href="/blog/2011/03/18/did-mongoid-break-your-migrations">Did Mongoid Break Your Migrations?</a>
+  </h2>
+  <em class="postdate">Posted on 18 March 2011.</em>
+  <div class="postbody">
+    <p>When using Mongoid and ActiveRecord side by side, a default install will break your ability to run rails migrations and generators.  This is because Mongoid pushes aside ActiveRecord and assumes the tasks of migrations, which if you know anything about MongoDB or other document stores, is not needed.  The solution is simple &#8211; tell ActiveRecord that you want to use it for generators with the following snippet added to your application.rb file:</p>
+<pre data-language="ruby">
+    config.generators do |g| 
+      g.orm :active_record 
+    end
+</pre>
+  </div>
+</div>
+
+
+  <div class="post">
+  <h2 class="posttitle">
+    <a href="/blog/2010/09/27/how-to-catch-a-rodent-not-informant-rat">How to catch a (rodent, not informant) rat</a>
+  </h2>
+  <em class="postdate">Posted on 27 September 2010.</em>
+  <div class="postbody">
+    <p>I like to consider this blog first and foremost about startups and programming.  However, dealing with disposing of a rat living in my house proved to be just as difficult as setting up a recurring billing system!  So, this article is about hacking a rat, instead of programming computers.  If you don&#8217;t want to read the whole post, here is the gist: to get rid of a rat who will touch no trap, simply tie bacon onto a spool of fishing line, and when the rat takes the bacon to his nest you can then follow the line to find the nest and finish him off.</p>
+<p>Now, some people who get rats are lucky: they have dumb rodents that will fall for snap traps smothered in peanut butter.  Boy, do I wish the rat that chose my freaking oven as a home was dumb.  Nope, instead I get the rat that will not fall for any type of trap.  I tried humane rodent traps, a custom trap made with a bucket and a spinning bottle smothered in peanut butter (cool design, rodent runs up a ramp to the bucket rim, tried to walk on the soda bottle suspended with wire across the bucket opening, which then spins on them dropping them into water below).  I then resorted to snap traps with a variety of different baits, including peanut butter, cheese, dog food, bacon and tuna.  Nothing.  The damn thing was stock piling food underneath the kitchen stove with impunity!</p>
+<p>I took apart the stove and disturbed his nest, which happened to be in the insulation above the oven and below the stove top.  He had pissed and shat in the insulation, which cost me $100 to replace.  In any event, he was scared out of his oven-nest and proceeded to skitter across the kitchen floor, and down to the basement.  Dumb me forgot to close the basement door.  Here is a pic of him playing dead when I opened the oven:</p>
+<p style="text-align:center;"><img src="/images/dead_rat_small.jpg" alt="" /></p>
+<p>So, getting desperate, I bought a pellet gun and set out to shoot the damn thing that had been keeping me up at night for weeks now.  I spent several hours each night perched on the steps in my basement, pellet gun loaded in my lap, scope zeroed in and focused at my 10 yard range to the pile of bacon I kept replenishing on a ledge across the basement.  Still, the damn thing wouldn&#8217;t eat the bacon until it had been out for at least 24 hours, and wouldn&#8217;t eat it at any consistent time.</p>
+<p>So now I am really desperate and my girlfriend is starting to question my manhood.  Come to think of it, even I was questioning my manhood so I decide to campout in the basement until I killed the damn thing.  I made a hammock snipers nest, hung from the joists supporting the floor of the house above me.  I put up a red 25w light bulb illuminating my target area, tied a piece of fishing line to the two pieces of bacon in the event I dozed off, then proceeded to read/doze in my snipers den until 4am.  The other end of the fishing line was looped around my wrist, which would hopefully tug me awake if my target went for the bait.  By the time 4am comes, I give up reading by almost no light, and decide to go to bed.  Next morning the damn bacon is gone, but I have a length of fishing line I can follow to find his new home!</p>
+<p>From here, the most manic 4 hours of my life occurred, which resulted in my digging up 20 square feet of dirt in the crawlspace of the house, unearthing rat tunnels, flooding them, ripping all the vapor barrier plastic out, chasing a rat with a shovel, screaming at the sky, then finding the bastard under the steps in front of the house.  I got him with a pellet then did a victory dance with my rifle in the front yard, scaring the shit out of all my neighbors.</p>
+<p style="text-align:center;"><img src="/images/rat_hunter_small.jpg" alt="" /></p>
+<p>Sorry <span class="caps">PETA</span>, and sorry rat.  But, it was you or my girlfriend plus my sanity.  Easy choice.</p>
+  </div>
+</div>
+
+
+  <div class="post">
+  <h2 class="posttitle">
+    <a href="/blog/2010/07/19/nginx-error-log-filling-up-with-rewrite-rules">nginx error log filling up with rewrite rules</a>
+  </h2>
+  <em class="postdate">Posted on 19 July 2010.</em>
+  <div class="postbody">
+    <p>I will be the first to admit that I am not a stellar sysadmin, however I met a new low when I realized my nginx error log for my <a href="http://ridewithgps.com">bike route mapping</a> site was filled with 5 gigs of rewrite notifications.  After thinking the solution would be easy, simply setting rewrite_log to off, I found out that didn&#8217;t actually do anything.</p>
+<p>So, if you are trying to turn off rewrite rule logging in your nginx error log, you must do two things:</p>
+<p>First, add</p>
+<pre>
+  *rewrite_log off;*
+</pre>
+<p>to your main configuration.  Then, make sure each error_log declaration has a level other than critical.  I picked &#8216;warn&#8217;, and we&#8217;ll see if this fills up quick.  My guess is for heavy hit sites, &#8216;error&#8217; is the correct value.  Your error log line should look like:</p>
+<pre>
+  *error_log /var/log/nginx.ridewithgps.com.error.log warn;*
+</pre>
+<p>With those changes you should have a much smaller error log footprint, and grepping through your logs won&#8217;t grind on your disks too much.</p>
+  </div>
+</div>
+
+
+  <div class="post">
+  <h2 class="posttitle">
+    <a href="/blog/2010/06/02/converting-dems-from-geotiff-to-gridfloat">Converting DEM from GeoTIFF to GridFloat with C Source</a>
+  </h2>
+  <em class="postdate">Posted on 02 June 2010.</em>
+  <div class="postbody">
+    <p>I just recently acquired a patched and improved <span class="caps">SRTM</span> elevation dataset for the entire world.  This will allow our route planner to use only our own elevation service rather than relying on the <span class="caps">USGS</span> and geonames for elevations outside the United States.  However, the format choices for the <span class="caps">DEM</span> was either GeoTIFF or an <span class="caps">ASCII</span> grid.  Since the <span class="caps">ASCII</span> grid of elevations just means the elevations are literally space delimited in a plain <span class="caps">ASCII</span> file, I decided that was a huge waste of space.</p>
+<p>However, after spending a bit of time learning about <span class="caps">GDAL</span> then writing a program in C (made a ruby module), I found out that accessing individual pixels in a GeoTIFF using <span class="caps">GDAL</span> is slowwww.  So slow, that it was unusable for our application.  After poking around and thinking, I decided to drop the GeoTIFF format and to convert the files to a good old GridFloat.  The GridFloat format is very simple: it&#8217;s a binary file where each 32 bits is an elevation.  You can easily calculate where in the binary file to access your elevation by knowing the latitude and longitude of the corner, and that the binary file is a flattened 2D array of elevation data in row-major order.  Meaning, the first X bits of the file are row1 of the grid, followed by row2, etc etc.</p>
+<p>My first conversion program was naive, and it read the <span class="caps">TIFF</span> pixel by pixel, writing each pixel to the output file individually.  As expected, this was incredibly slow considering each <span class="caps">TIFF</span> was a 6001&#215;6001 grid of pixels.  Converting a single 69mb <span class="caps">TIFF</span> took 3-5 minutes.</p>
+<p>My second iteration of the program read row by row, writing each row to the output file, and was considerably faster, clocking in at only 3 seconds per file.  However, I realized that each read then write was sending the disk head all over the platter, and was definitely inefficient.  So, I sacrificed some <span class="caps">RAM</span> and just read the entire <span class="caps">TIFF</span> into an array, then wrote that array to disk using a single fwrite() call.  This ended up being incredibly fast, taking only 1 second to read a 69 meg <span class="caps">TIFF</span> and writeout a 138 meg GridFloat file.</p>
+<p>Here is the final conversion code:</p>
+<pre data-language="c">
+#include &lt;stdlib.h&gt;
+#include &lt;math.h&gt;
+#include "gdal.h"
+
+int main(int argc, char *argv[]) {
+        char *filename = argv[1];
+        char *outfilename = argv[2];
+        char *headerfilename = argv[3];
+        char str[128];
+        GDALDatasetH dataset;
+        GDALRasterBandH *band;
+        int xSize;
+        int ySize;
+        int i, j;
+        double geoTransform[9];
+        int sizee = sizeof(float);
+        int count = 6001*6001;
+        float *outt = malloc(sizeof(float)*count);
+        float *window;
+        FILE *outfp;
+
+        GDALAllRegister(); //initialize GDAL
+
+        dataset = GDALOpen(filename, GA_ReadOnly);
+        if(dataset == NULL) {
+                fprintf(stderr, "Couldn't open geotiff file %s\n", filename);
+                return 0;
+        }   
+
+        band = GDALGetRasterBand(dataset, 1); 
+
+        xSize = GDALGetRasterXSize(band);
+        ySize = GDALGetRasterYSize(band);
+        window = (float *) CPLMalloc(sizeof(float)*xSize);
+
+        GDALGetGeoTransform(dataset, geoTransform);
+        if((outfp = fopen(outfilename, "w")) == NULL) {
+                printf("shit, something went wrong opening file");
+                fflush(stdout);
+                exit(1);
+        }   
+
+        /*  
+         * If I naively just loop through each pixel and write that pixel, it takes so long to actually
+         * perform the conversion.  So we loop through row then order them in-memory
+         * in an array, then write that array in a single fwrite call.  This is orders of
+         * magnitude faster!  1 second vs 3-5 minutes per 69 meg in -&gt; 138 meg out file.
+         */
+        for(i = 0; i &lt; xSize; i++) {
+                GDALRasterIO(band, GF_Read, 0, i, xSize, 1, window, ySize, 1, GDT_Float32, 0, 0); 
+                for(j = 0; j &lt; ySize; j++) {
+                        outt[j + i*xSize] = window[j];
+                }
+        }   
+        fwrite(outt, sizee, count, outfp);
+        fclose(outfp);
+
+        outfp = fopen(headerfilename, "w");
+        sprintf(str, "ncols         10812\nnrows         10812\n");
+        fputs(str, outfp);
+        sprintf(str, "xllcorner     %f\nyllcorner     %f\n", geoTransform[0], geoTransform[3] - 5.0008333333333);
+        fputs(str, outfp);
+        sprintf(str, "cellsize      0.0008333333333\nNODATA_value  -32768\nbyteorder     LSBFIRST\n");
+        fputs(str, outfp);
+        fclose(outfp);
+
+        exit(0);
+}
+</pre>
+  </div>
+</div>
+
+
+  <div class="post">
+  <h2 class="posttitle">
+    <a href="/blog/2010/04/21/error-1010-a-term-is-undefined-and-has-no-properties">Error</a>
+  </h2>
+  <em class="postdate">Posted on 21 April 2010.</em>
+  <div class="postbody">
+    <p>If you see this error popup while working with ActionScript 3, it&#8217;s most likely because you are trying to access a property of a null object.  It happens most often to me when looping through an array and having an element be null unexpectedly.  It&#8217;s a pretty undescriptive message, but easily fixed.</p>
+  </div>
+</div>
+
+
+  <div class="post">
+  <h2 class="posttitle">
+    <a href="/blog/2010/04/20/installing-ggplot2-with-r-on-ubuntu">Installing ggplot2 with R on Ubuntu</a>
+  </h2>
+  <em class="postdate">Posted on 20 April 2010.</em>
+  <div class="postbody">
+    <p>Had an issue installing the ggplot2 library for making a few graphs using R.  I ran into a snag when I opened up the R console and tried to install the library, getting an error:</p>
+<pre data-language="xml" >
+  &gt; install.packages("ggplot2")
+  install.packages("ggplot2") : package ‘plyr’ is not available
+</pre>
+<p>Turns out, Ubuntu has an older version of R than the latest ggplot requires, so, I had to pull down and install R from source.  Not too hard, you can get the source at <a href="http://cran.r-project.org/">The Comprehensive R Archive Network</a></p>
+<p>Installing from source is as simple as the standard:</p>
+<pre data-language="xml">
+  ./configure
+  make -j8
+  sudo make install
+</pre>
+<p>where -j8 is taking advantage of the quad-core processor in my machine.<br />
+Enjoy!</p>
+  </div>
+</div>
+
+
+  <div class="post">
+  <h2 class="posttitle">
+    <a href="/blog/2010/03/05/garmin-communicator-getting-fit-support">Garmin Communicator getting FIT support</a>
+  </h2>
+  <em class="postdate">Posted on 05 March 2010.</em>
+  <div class="postbody">
+    <p>After the Garmin Edge 500 came out with its new fileformat, <span class="caps">FIT</span>, I tried to get support for the device on the ridewithgps Garmin Sync page.  However, using the exact same method Garmin Connect uses in the <span class="caps">API</span>, I was unable to get anything to work.  Turns out, they blocked third party websites from using that portion of the <span class="caps">API</span>.  Best guess says it is for bug testing purposes&#8230;It&#8217;s easier to debug something in a controlled environment you control, rather than hearing grief from all the developers using the <span class="caps">API</span>.  In any event, they announced a beta developers plugin with support for <span class="caps">FIT</span> devices.</p>
+<p>Announced in their forums here:</p>
+<p><a href="https://forums.garmin.com/showthread.php?t=6213">https://forums.garmin.com</a></p>
+<p>ridewithgps might be one of the first sites to support direct sync with <span class="caps">FIT</span> devices!</p>
+  </div>
+</div>
+
+
+<p class="page_links">
+  <a href="/page2">Next page</a>
+</p>
+
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-7831480-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+      </div>
+
+      <div id="sidebar" class="yui3-u-5-24">
+        <h3>Friends!</h3>
+        <ul>
+          <li><a href="http://ridewithgps.com">Best Bike Website</a></li>
+          <li><a href="http://blog.ridewithgps.com">Ride With GPS Blog</a></li>
+          <li><a href="http://sonicboomracing.com">Sonic Boom Racing</a></li>
+          <li><a href="http://bikeportland.org">Bike Portland</a></li>
+          <li><a href="http://www.upperechelonfitness.com">Upper Echelon Fitness</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <script src="/javascripts/rainbow-custom.min.js"></script>
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-7831480-1']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
   </body>
 </html>

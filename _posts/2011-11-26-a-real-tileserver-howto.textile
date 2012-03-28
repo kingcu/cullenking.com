@@ -1,0 +1,14 @@
+--- 
+layout: post
+title: The Only Complete OSM Tileserver Guide
+disqus_id: /2011/4/7/the-only-complete-osm-tileserver-guide
+categories: 
+  []
+---
+
+With Google's recent announcement to start charging for the use of Maps, we
+started to worry.  After running the numbers and assuming reasonable growth (the
+same growth we had in 2010), http://ridewithgps.com was looking at around
+$40,000 per year in usage!  This is considerably higher than our budget, so I
+finally took the plunge 
+I have just spent the last two weeks setting up a tileserver on the OSM stack.

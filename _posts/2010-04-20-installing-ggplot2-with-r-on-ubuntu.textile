@@ -9,20 +9,20 @@ categories:
 
 Had an issue installing the ggplot2 library for making a few graphs using R.  I ran into a snag when I opened up the R console and tried to install the library, getting an error:
 
-<filter:code lang="xml" theme="blackboard">
+<pre data-language="xml" >
   > install.packages("ggplot2")
   install.packages("ggplot2") : package ‘plyr’ is not available
-</filter:code>
+</pre>
 
 Turns out, Ubuntu has an older version of R than the latest ggplot requires, so, I had to pull down and install R from source.  Not too hard, you can get the source at "The Comprehensive R Archive Network":http://cran.r-project.org/
 
 Installing from source is as simple as the standard:
 
-<filter:code lang="xml" theme="blackboard">
+<pre data-language="xml">
   ./configure
   make -j8
   sudo make install
-</filter:code>
+</pre>
 
 where -j8 is taking advantage of the quad-core processor in my machine.
 Enjoy!

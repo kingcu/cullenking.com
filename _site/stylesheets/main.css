@@ -1,0 +1,51 @@
+body {
+  margin: auto;
+  width: 960px;
+  color: #2f2f2f;
+}
+
+pre, code { width: 600px; }
+
+h1, h2, h3, h4, h5, h6 {
+  color: #000;
+}
+
+h2.posttitle {
+  font-size: 18px;
+}
+h2 a {
+  color: black;
+  text-decoration: none;
+}
+
+ul li { list-style: none; }
+p, ul {
+  line-height: 1.5em;
+}
+
+#header {
+  height: 85px;
+  margin: 0;
+  padding: 0;
+}
+
+
+.postbody {
+  margin: 0 1em;
+}
+
+.page_links {
+  float: right;
+}
+
+.post {
+  margin-bottom: 2em;
+  border-bottom: 2px dotted #ccc;
+  padding-bottom: 1em;
+}
+
+.postdate {
+  display: block;
+  margin-top: -12px;
+  margin-bottom: 1em;
+}
