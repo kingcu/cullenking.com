@@ -1,6 +1,6 @@
 auto: false
 server: false
-permalink: /:year/:month/:day/:title
+permalink: /:year/:i_month/:i_day/:title
 markdown: maraku
 pygments: true
 paginate: 10

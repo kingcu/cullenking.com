@@ -1,0 +1,83 @@
+<!DOCTYPE HTML>
+<html lang='en' xml:lang='en' xmlns='http://www.w3.org/1999/xhtml'>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="description" content="Miscellaneous programming tips, as well as thoughts on business and fitness." />
+    <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/combo?3.3.0/build/cssfonts/fonts-min.css&3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssgrids/grids-min.css&3.3.0/build/cssbase/base-min.css" />
+    <link href="/stylesheets/rainbow.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="/stylesheets/main.css" rel="stylesheet" type="text/css" media="screen" />
+    <title>Cullen's Blog...</title>
+  </head>
+  <body>
+    <div id="header">
+      <h1><a href="/">Home</a></h1>
+    </div>
+    <div id="content" class="yui3-g">
+      <div id="posts" class="yui3-u-19-24">
+        <div class="post">
+  <h2 class="posttitle">
+    <a href="/2009/12/17/database-optimizations">Database Optimizations</a>
+  </h2>
+  <em class="postdate">Posted on 17 December 2009.</em>
+  <div class="postbody">
+    <p>When we first started working on ridewithgps, we made the decision to store all route information as <span class="caps">JSON</span> text inside the database.  The downside should be pretty obvious, in that a route or trip can be a fairly large string; I have some trips saved from my <span class="caps">GPS</span> unit that are 1.5 megs of xml and around 600kb of <span class="caps">JSON</span>.  To cope with the performance hit when using activerecord to pull routes/trips from the database, we used a plugin called attribute_lazy that delayed loading of the fields until they are explicitly queried for.  However, this adds an additional layer of metaprogramming complexity, and turned out to be a pain to work with in certain situations.</p>
+<p>The final straw was an ever-growing database size, which resulted in database dumps being 3GB with our current ~22k routes/trips.  Considering we need offsite backups as well as an easy way to bring the dataset in locally for development purposes, I desperately needed to use rsync for incremental and efficient transfer of only the modified and/or new routes!</p>
+<p>There was one thing to think of when deciding on this solution: filesystems use a single inode per stored file, and you can actually run out of inodes before you run out of disk space, depending on your inode size and the size of the files you are storing.  Since each route and trip will take about 4 separate files (I store reduced versions of the route for low resolution maps which need fast load times), I did some calculations based on having around 120 million free inodes.  Without considering other files being uploaded, such as images, I have around 30 million routes/trips I can store without running into the inode limit on my current 1 terrabyte RAID10 array.  If we don&#8217;t have the money to expand storage options with another couple million routes/photos, then we are doing something wrong.</p>
+<p>This task was fairly straight forward with one exception: storing a file corresponding to a particular trip or route requires the ID of that trip or route in the database.  This ID is not available until after the database entry is saved, so we have to persist the <span class="caps">JSON</span> until we have that ID available.  The canonical rails way of doing this is of course using the after_save method.  I keep the <span class="caps">JSON</span> around by shoving it into an instance variable on the particular route/trip instance we are saving, then clearing that variable when the file has been written.</p>
+<pre data-language="ruby" >
+def data_full= json
+  if self.id == nil
+    @data_full = json
+    return
+  end
+
+  if json
+    File.open(df_path, 'w+') { |file| file &lt;&lt; data.to_json }
+  elsif File.exists?(df_path)
+    File.delete(df_path)
+  end
+  @data_full = nil
+end
+</pre>
+<p>A simplified version of what we are using is above, which is loaded into routes and trips using a module.  Basically, we first check if the ID exisits and if not, populate the instance variable with our text.  If it does, we open the flatfile in truncate mode (overwrite if it already exists).  If a nil value is passed in, we delete the file if the file exists.</p>
+<p>The after save method for routes and trips is trivial as well, since we just call the assignment again.  On this second call, the assignment falls past the conditional check for a nil id, and the file write occurs.</p>
+<pre data-language="ruby" >
+def after_save
+  if @data_full
+    self.data_full = @data_full
+  end
+  #some boring stuff also happens...
+end
+</pre>
+<p>The final bit of the puzzle is removing files if a route/trip is destroyed, which is pretty trivial.  This will greatly improve throughput on heavy loads, which will be welcomed when we get a huge influx of users next riding season.  The best part? our 3GB database dump was now whittled down to a mere 26MB!  We can easily hit 100k users and 500k routes/trips and not break the 1GB mark, which means database scaling will only be for performance rather than space considerations.  The directory structure containing the flatfiles is currently at 2.6 gigs.  With rsync, backups are now speedy and efficient.</p>
+  </div>
+</div>
+
+      </div>
+
+      <div id="sidebar" class="yui3-u-5-24">
+        <h3>Friends!</h3>
+        <ul>
+          <li><a href="http://ridewithgps.com">Best Bike Website</a></li>
+          <li><a href="http://blog.ridewithgps.com">Ride With GPS Blog</a></li>
+          <li><a href="http://sonicboomracing.com">Sonic Boom Racing</a></li>
+          <li><a href="http://bikeportland.org">Bike Portland</a></li>
+          <li><a href="http://www.upperechelonfitness.com">Upper Echelon Fitness</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <script src="/javascripts/rainbow-custom.min.js"></script>
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-7831480-1']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+  </body>
+</html>

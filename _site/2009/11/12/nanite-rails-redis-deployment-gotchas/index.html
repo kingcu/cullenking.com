@@ -1,0 +1,82 @@
+<!DOCTYPE HTML>
+<html lang='en' xml:lang='en' xmlns='http://www.w3.org/1999/xhtml'>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="description" content="Miscellaneous programming tips, as well as thoughts on business and fitness." />
+    <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/combo?3.3.0/build/cssfonts/fonts-min.css&3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssgrids/grids-min.css&3.3.0/build/cssbase/base-min.css" />
+    <link href="/stylesheets/rainbow.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="/stylesheets/main.css" rel="stylesheet" type="text/css" media="screen" />
+    <title>Cullen's Blog...</title>
+  </head>
+  <body>
+    <div id="header">
+      <h1><a href="/">Home</a></h1>
+    </div>
+    <div id="content" class="yui3-g">
+      <div id="posts" class="yui3-u-19-24">
+        <div class="post">
+  <h2 class="posttitle">
+    <a href="/2009/11/12/nanite-rails-redis-deployment-gotchas">Nanite, Rails, Redis deployment gotchas</a>
+  </h2>
+  <em class="postdate">Posted on 12 November 2009.</em>
+  <div class="postbody">
+    <p>One of the problems (joys?) with new and exciting open source software is the relative scarcity of information available.  Compound this with powerful/complex software and you get  a real recipe for learning.  This has been the case with getting a reliable Nanite deployment for <a href="http://ridewithgps.com">http://ridewithgps.com.</a>  Nanite is an incredibly powerful distributed background worker written in Ruby, which leverages the <span class="caps">AMQP</span> messaging protocol and the RabbitMQ server for fast, efficient and safe job creation and passing.  I am not going to bother detailing what Nanite is, since that information is readily available on the GitHub page, but rather am going to talk about a few gotchas.</p>
+<p>Nanite is fairly simple to get running, however there are a few caveats.  If you plan on using it with a Rails application, you have some choices: you can either do a few things by hand (not too bad) or you can use the nanite-rails plugin.  I started with the plugin, but decided less is better and stripped it out, and am now just running Nanite plain.  The one thing I did keep was the nanite.rb initializer file for getting started with various servers.  Since I test locally on thin and deploy on Passenger, using the nanite-rails provided script worked well.</p>
+<p>The first issue I noticed, is that multiple agents were receiving the same message (job) from my rails mapper(s) when the job was pushed from within an agent itself, rather from code in the mappers eventmachine loop.  Simply put: all agents were receiving the same job when the job was sent from within an agent.  It turns out that this is due to each mapper having no idea what other mappers are doing.  This is possibly considered a &#8220;feature&#8221; and may or may not be addressed by the Nanite developers.  The reason they are non-committal is due to the fact the problem is solved when you couple Nanite with Redis.  If you don&#8217;t know what Redis is, go ahead and readup, but basically it is a key/value storage similar to memcached, except it can persist data to disk and you can store simple data structures within, rather than plain strings.  In any event, Nanite can use Redis to store state, which is central to all mappers.  This way, every mapper knows about every other mapper, and duplicate requests are not assigned to agents.</p>
+<p>Here is a <a href="http://github.com/ezmobius/nanite/issues#issue/7">direct link</a> to the issue.</p>
+<p>To use Redis with Nanite, simply include a configuration option when starting a mapper:</p>
+<pre data-language="ruby" theme="blackboard">
+Nanite.start_mapper(:host =&gt; 'localhost', ...., :redis =&gt; "REDIS_HOST:REDIS_PORT")
+</pre>
+<p>If you don&#8217;t want to use Redis, the problem can be worked around with some massaging of the Nanite code.  You can checkout how this is done by visiting <a href="http://github.com/nofxx/nanite/commit/7804058cf297088f063cf5d1d2695c8b15ab71a0">nofxx&#8217;s fork</a> of Nanite on GitHub and seeing what he did.</p>
+<p>The next problem I encountered was my agents getting swamped with messages, timing out and freezing.  The reason this happens, is that RabbitMQ stuffs data down a socket and keeps it full.  The moment that socket is emptied, RabbitMQ shoves more down the socket.  However on the receiving end the <span class="caps">AMQP</span> client utilizes EventMachine, which has a reactor loop that visits each socket within the loop in turn.  It keeps a connection open to the socket corresponding to the queue it is subscribed to (queue for that agent), and blocks while that socket is full, meaning it is unable to move on to the next socket/queue.  So, RabbitMQ keeps the socket full and EventMachine keeps emptying the socket as long as it is full, and we get a recipe for a headache.</p>
+<p>RabbitMQ versions 1.6.0 and greated now have a configuration option called &#8220;prefetch&#8221;.  This option limits the number of messages to stuff into that socket at any one time.  So, where you would have 100+ messages in a socket by default, always causing that socket to be full, you can now tell RabbitMQ to give you one message at a time in the socket.  This allows EventMachine to keep up with all the sockets.  If you have longer running tasks (multiple seconds), setting prefetch to 1 will keep everything happy.  If you can slam through tons of messages a second, larger prefetch values will avoid extra looping and can help speed things up.</p>
+<p>Now this is where we have a problem!!!  Nanite offers a prefetch configuration option, but it is only on the mapper!  The problem we need to solve is the queues corresponding to the agents, so the prefetch configuration option needs to be set for agent queues, not the mapper queue (which can handle large numbe of messages, since they are just acks, pings and responses from agents).  This is where we need to dive into the Nanite source and change some stuff.  The less adventerous can just pull my <a href="http://github.com/kingcu/nanite">Nanite fork</a> on GitHub until these changes are accepted upstream, the more adventerous can look at how the prefetch option is passed to the mapper, and repeat it on the agent.  You can see below my modified setup_queue() method, with the first three lines added.</p>
+<pre data-language="ruby" theme="blackboard">
+def setup_queue
+  if amq.respond_to?(:prefetch) &amp;&amp; @options.has_key?(:prefetch)
+    amq.prefetch(@options[:prefetch])
+  end
+  amq.queue(identity, :durable =&gt; true).subscribe(:ack =&gt; true) do |info, msg|
+    begin
+      info.ack
+      receive(serializer.load(msg))
+    rescue Exception =&gt; e
+      Nanite::Log.error("RECV #{e.message}")
+    end
+  end
+end
+</pre>
+<p>Finally, I was having problems with intermittently losing jobs spawned from my web interface, which is deployed on passenger.  After a huge amount of struggling, I finally conceded that eventmachine and passenger are not compatible in passengers smart spawning mode.  So, I set passengers spawning mode to conservative and enjoyed a much more robust deployment!</p>
+<p>I am sure some more info will follow, but this should be enough to get you going.</p>
+  </div>
+</div>
+
+      </div>
+
+      <div id="sidebar" class="yui3-u-5-24">
+        <h3>Friends!</h3>
+        <ul>
+          <li><a href="http://ridewithgps.com">Best Bike Website</a></li>
+          <li><a href="http://blog.ridewithgps.com">Ride With GPS Blog</a></li>
+          <li><a href="http://sonicboomracing.com">Sonic Boom Racing</a></li>
+          <li><a href="http://bikeportland.org">Bike Portland</a></li>
+          <li><a href="http://www.upperechelonfitness.com">Upper Echelon Fitness</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <script src="/javascripts/rainbow-custom.min.js"></script>
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-7831480-1']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE HTML>
+<html lang='en' xml:lang='en' xmlns='http://www.w3.org/1999/xhtml'>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="description" content="Miscellaneous programming tips, as well as thoughts on business and fitness." />
+    <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/combo?3.3.0/build/cssfonts/fonts-min.css&3.3.0/build/cssreset/reset-min.css&3.3.0/build/cssgrids/grids-min.css&3.3.0/build/cssbase/base-min.css" />
+    <link href="/stylesheets/rainbow.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="/stylesheets/main.css" rel="stylesheet" type="text/css" media="screen" />
+    <title>Cullen's Blog...</title>
+  </head>
+  <body>
+    <div id="header">
+      <h1><a href="/">Home</a></h1>
+    </div>
+    <div id="content" class="yui3-g">
+      <div id="posts" class="yui3-u-19-24">
+        <div class="post">
+  <h2 class="posttitle">
+    <a href="/2010/3/1/recovering-a-lost-commit-in-git">Recovering a lost commit in GIT</a>
+  </h2>
+  <em class="postdate">Posted on 01 March 2010.</em>
+  <div class="postbody">
+    <p>I just recovered from a scary situation in which I lost a whole commit to git by accidentally working out of the &#8220;no branch&#8221; branch in git.  I would have only lost around 2 hours of work, however, two hours is a decent amount when you are already pressed for time!  After about three minutes of googling I came across a link which saved me.  The gist of it is below:</p>
+<pre data-language="xml">
+kingcu@kingcu-desktop:~/ridewithgps$ git reflog show
+
+b709fac... HEAD@{3}: pull origin new_garmin_sync: Merge made by recursive.
+b6e1616... HEAD@{4}: commit: intermediate checkin for Cam. UI is wired up to send to server, now just needs some massaging for generating extra info for a trip like associated route, etc
+</pre>
+<p>The commit that was not in any branch is the &#8216;intermediate checkin&#8217; commit.  Now that we have a part of the <span class="caps">SHA</span> hash, we can use git log to show the commit, get the full hash and then merge it into the branch we want:</p>
+<pre data-language="xml">
+kingcu@kingcu-desktop:~/ridewithgps$ git log b6e1616
+.....
+.....
+kingcu@kingcu-desktop:~/ridewithgps$ git merge b6e16166608b5be148b5dc0a721af3e8d15de282
+</pre>
+<p>Here is the blog which helped me arrive at this solution:</p>
+<p><a href="http://techblog.ironfroggy.com/2007/12/how-to-recover-lost-git-branches.html">http://techblog.ironfroggy.com/2007/12/how-to-recover-lost-git-branches.html</a></p>
+  </div>
+</div>
+
+      </div>
+
+      <div id="sidebar" class="yui3-u-5-24">
+        <h3>Friends!</h3>
+        <ul>
+          <li><a href="http://ridewithgps.com">Best Bike Website</a></li>
+          <li><a href="http://blog.ridewithgps.com">Ride With GPS Blog</a></li>
+          <li><a href="http://sonicboomracing.com">Sonic Boom Racing</a></li>
+          <li><a href="http://bikeportland.org">Bike Portland</a></li>
+          <li><a href="http://www.upperechelonfitness.com">Upper Echelon Fitness</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <script src="/javascripts/rainbow-custom.min.js"></script>
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-7831480-1']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+  </body>
+</html>
